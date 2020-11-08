@@ -4,7 +4,7 @@ class SymbolTable():
     """Symbol table to keep track of dynamic symbols in asm files
 
     Attributes:
-        
+        _table -- The symbol table (dictionary)
     """
     PREDEFINED_SYMBOLS = {
         "SP": 0,
@@ -31,6 +31,7 @@ class SymbolTable():
         "SCREEN": 16384,
         "KBD": 24576,
     }
+
     def __init__(self):
         self._table = self.PREDEFINED_SYMBOLS
     
