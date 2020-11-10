@@ -12,6 +12,7 @@ class Parser():
     A_COMMAND = "A_COMMAND"
     C_COMMAND = "C_COMMAND"
     L_COMMAND = "L_COMMAND"
+    EMPTY_LINE = "EMPTY_LINE"
 
     DESTINATIONS = [
         "null",
@@ -71,6 +72,10 @@ class Parser():
         self._numlines = len(self._input)
         self._index = -1
     
+    def remove_whitespace(self, line):
+        temp = "".join(line.split())
+        return temp.split("//")[0]
+
     # return true if there are more commands to process
     def has_more_commands(self):
         if self._index < (self._numlines - 1):
@@ -86,23 +91,25 @@ class Parser():
     # return the current instruction
     def current_instruction(self):
         if self._index >= 0 and self._index < self._numlines:
-            return self._input[self._index]
+            return self.remove_whitespace(self._input[self._index])
         else:
             raise ParseError(self._index, "Index out of range, no current instruction")
 
     # return the command type of the existing instruction
     def command_type(self):
-        line = self._input[self._index]
+        line = self.current_instruction()
         if re.search("^@[0-9]+$", line) or re.search("^@[a-zA-Z][a-zA-Z0-9_\.\$\:]*$", line):
             return self.A_COMMAND
         elif re.search("^\([a-zA-Z_\.\$\:][a-zA-Z0-9_\.\$\:]*\)$", line):
             return self.L_COMMAND
+        elif line == "":
+            return self.EMPTY_LINE
         else:
             return self.C_COMMAND
 
     def symbol(self):
         if self.command_type() == self.A_COMMAND:
-            instruction = self._input[self._index]
+            instruction = self.current_instruction()
             stripped = instruction.replace('@', '')
             try:
                 stripped_int = int(stripped)
@@ -113,7 +120,7 @@ class Parser():
             except ValueError:
                 return stripped
         elif self.command_type() == self.L_COMMAND:
-            return self._input[self._index].replace('(', '').replace(')', '')
+            return self.current_instruction().replace('(', '').replace(')', '')
         else:
             raise ParseError(self.current_instruction(), "Cannot determine symbol for a c-instruction")
 
