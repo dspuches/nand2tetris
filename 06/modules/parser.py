@@ -6,7 +6,7 @@ class Parser():
 
     Attributes:
         _input -- list of assembly commands, one line per list element
-        _numlines -- number of assembly commands after whitespace is removed
+        _numlines -- number of assembly commands
         _index -- current index of instruction in _input
     """
     A_COMMAND = "A_COMMAND"
