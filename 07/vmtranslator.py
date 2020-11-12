@@ -4,6 +4,7 @@ import os
 
 from modules.parser import Parser
 from modules.parse_error import ParseError
+from modules.code_error import CodeError
 from modules.code_generator import CodeGenerator
 from modules import config
 

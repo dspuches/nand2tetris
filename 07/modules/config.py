@@ -5,7 +5,8 @@ C_ARITHMETIC = "C_ARITHMETIC"
 S_CONSTANT = "constant"
 
 ARITHMETIC_COMMANDS = {
-    "add"
+    "add",
+    "sub"
 }
 
 SEGMENTS = {
