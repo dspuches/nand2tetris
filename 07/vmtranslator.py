@@ -33,7 +33,7 @@ def main(input, output):
     
     # single code generator for all vm files, single ASM output
     code_gen = CodeGenerator()
-    asm_output = []
+    asm_output = code_gen.generate_preamble()
 
     # loop through all .vm files
     for file in infiles:

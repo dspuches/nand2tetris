@@ -6,7 +6,11 @@ S_CONSTANT = "constant"
 
 ARITHMETIC_COMMANDS = {
     "add",
-    "sub"
+    "sub",
+    "neg",
+    "eq",
+    "gt",
+    "lt",
 }
 
 SEGMENTS = {
