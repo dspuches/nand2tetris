@@ -10,15 +10,6 @@ class CodeGenerator():
         self._a_eq_ctr = 1
         self._a_gt_ctr = 1
         self._a_lt_ctr = 1
-        # initialize SP, set SP=256
-        # self._asm.append("@256")
-        # self._asm.append("D=A")
-        # self._asm.append("@SP")
-        # self._asm.append("M=D")
-        # @256
-        # D=A
-        # @SP
-        # M=D
 
     # generate preamble asm code
     # right now, all it does is initialize SP to 256
@@ -49,6 +40,9 @@ class CodeGenerator():
             "eq": self.a_eq,
             "gt": self.a_gt,
             "lt": self.a_lt,
+            "and": self.a_and,
+            "or": self.a_or,
+            "not": self.a_not,
         }
         func = switch.get(command)
         return func()
@@ -189,6 +183,47 @@ class CodeGenerator():
         ]
         self._a_lt_ctr += 1
         asm_cmds.extend(asm_check_lt)
+        return asm_cmds
+    
+    # generates asm for the and VM arithmetic command
+    def a_and(self):
+        asm_cmds = [
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=M",      # D = y
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=D&M"     # D = x & y
+        ]
+        asm_cmds.extend(self.asm_push_d())
+        return asm_cmds
+
+    # generates asm for the or VM arithmetic command
+    def a_or(self):
+        asm_cmds = [
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=M",      # D = y
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=D|M"     # D = x & y
+        ]
+        asm_cmds.extend(self.asm_push_d())
+        return asm_cmds
+
+    def a_not(self):
+        asm_cmds = [
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=M",      # D = y
+            "D=!D",     # D = -y
+        ]
+        asm_cmds.extend(self.asm_push_d())
         return asm_cmds
 
     # helper method to push a constant to the stack

@@ -11,6 +11,9 @@ ARITHMETIC_COMMANDS = {
     "eq",
     "gt",
     "lt",
+    "and",
+    "or",
+    "not",
 }
 
 SEGMENTS = {
