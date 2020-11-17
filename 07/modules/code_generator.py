@@ -13,13 +13,33 @@ class CodeGenerator():
         self._a_lt_ctr = 1
 
     # generate preamble asm code
-    # right now, all it does is initialize SP to 256
+    # Init SP, LCL, ARG, THIS, and THAT
     def generate_preamble(self):
         asm_cmds = [
-            "@256",             # A=256
-            "D=A",              # D=256
-            "@SP",              # A=SP
-            "M=D",              # M[SP]=256
+            "@256",             # SP=256
+            "D=A",
+            "@SP",
+            "M=D",
+
+            "@300",             # LCL=300
+            "D=A",
+            "@LCL",
+            "M=D",
+            
+            "@400",             # ARG=400
+            "D=A",
+            "@ARG",
+            "M=D",
+            
+            "@3000",             # THIS=3000
+            "D=A",
+            "@THIS",
+            "M=D",
+            
+            "@3010",             # THAT=3010
+            "D=A",
+            "@THAT",
+            "M=D",        
         ]
         return asm_cmds
 
@@ -56,8 +76,15 @@ class CodeGenerator():
         if command == config.C_PUSH:
             if segment not in config.PUSH_SEGMENTS:
                 raise CodeError(segment, "Cannot process segment")
-            if segment == config.S_CONSTANT:
-                return self._asm_push_constant(index)
+            # if segment == config.S_CONSTANT:
+            #     return self._asm_push_constant(index)
+
+            switch = {
+                config.S_CONSTANT: self._asm_push_constant,
+                #config.S_LOCAL: self._asm_push_local,
+            }
+            func = switch.get(segment)
+            return func(index)
     
     # generates asm for the add VM arithemteic command
     def _a_add(self):
@@ -197,6 +224,10 @@ class CodeGenerator():
         ]
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
+
+    # helper method to push a the value pointed to by LCL to the stack
+    def _asm_push_local(self, index):
+        return []
     
     # helper method to push the value of the D register to the stack
     def _asm_push_d(self):
