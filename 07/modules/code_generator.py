@@ -23,7 +23,6 @@ class CodeGenerator():
         ]
         return asm_cmds
 
-
     # generates the arithmetic ASM commands
     # assumes stack is setup as follows:
     # |     x     |
@@ -52,11 +51,11 @@ class CodeGenerator():
     def generate_push_pop(self, command, segment, index):
         if command is not config.C_PUSH:
             raise CodeError(command, "Is not a valid push or pop command")
-        if segment not in config.SEGMENTS:
-            raise CodeError(segment, "Cannot process segment")
         asm_cmds = []
 
         if command == config.C_PUSH:
+            if segment not in config.PUSH_SEGMENTS:
+                raise CodeError(segment, "Cannot process segment")
             if segment == config.S_CONSTANT:
                 return self._asm_push_constant(index)
     

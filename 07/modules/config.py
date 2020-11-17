@@ -16,9 +16,10 @@ ARITHMETIC_COMMANDS = {
     "not",
 }
 
-SEGMENTS = {
-    "constant"
-}
+POP_SEGMENTS = []
+
+PUSH_SEGMENTS = POP_SEGMENTS.copy()
+PUSH_SEGMENTS.append("constant")
 
 PUSH_POP_COMMANDS = {
     "push"

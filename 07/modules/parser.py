@@ -57,7 +57,7 @@ class Parser():
         
         if self.command_type() == config.C_PUSH:
             arg1 = self.current_line().split()[1]
-            if arg1 in config.SEGMENTS:
+            if arg1 in config.PUSH_SEGMENTS:
                 return arg1
             else:
                 raise ParseError(self.current_line(), "Invalid segment")
