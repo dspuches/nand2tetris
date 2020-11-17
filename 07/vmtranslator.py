@@ -10,22 +10,28 @@ from modules import config
 
 
 
-def main(input, output):
+def main(input):
     infiles = []
     # determine if the inputs is a directory or vmfile
     if re.search("\.vm$", input):
         # input is a single .vm file
         infiles.append(input)
+        output = input.strip(".vm")
+        output = "{}.asm".format(output)
     else:
         try:
             files = os.listdir(input)
             for f in files:
                 if re.search("\.vm$", f):
                     infiles.append(os.path.join(input, f))
+            # generate output filename
+            input = re.sub("/$", "", input)
+            output = os.path.join(os.path.abspath(input), "{}.asm".format(os.path.split(input)[1]))
         except Exception as e:
             print("Error attempting to read directory: {}".format(e))
             exit(1)
-    
+
+
     # if empty, output error and exit
     if not infiles:
         print("No files found with .vm suffix in {} directory. Exiting".format(input))
@@ -76,6 +82,5 @@ def main(input, output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input .vm file or directory containing .vm files")
-    parser.add_argument("output", help="output file")
     args = parser.parse_args()
-    main(args.input, args.output)
+    main(args.input)

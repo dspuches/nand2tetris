@@ -7,6 +7,7 @@ class CodeGenerator():
     Attributes:
     """
     def __init__(self):
+        # counters for labels generated during comparisons
         self._a_eq_ctr = 1
         self._a_gt_ctr = 1
         self._a_lt_ctr = 1
