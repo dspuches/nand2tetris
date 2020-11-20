@@ -46,6 +46,8 @@ class Parser():
         if len(split) == 3 and split[0] in config.PUSH_POP_COMMANDS:
             if split[0] == "push":
                 return config.C_PUSH
+            else:
+                return config.C_POP
         
         raise ParseError(self.current_line(), "Cannot determine command type")
         
@@ -55,9 +57,9 @@ class Parser():
         if self.command_type() == config.C_ARITHMETIC:
             return self.current_line()
         
-        if self.command_type() == config.C_PUSH:
+        if self.command_type() in config.PUSH_POP_COMMANDS:
             arg1 = self.current_line().split()[1]
-            if arg1 in config.PUSH_SEGMENTS:
+            if arg1 in config.SEGMENTS.keys():
                 return arg1
             else:
                 raise ParseError(self.current_line(), "Invalid segment")
@@ -68,7 +70,7 @@ class Parser():
     def arg2(self):
         type = self.command_type()
 
-        if type == config.C_PUSH:
+        if type in config.PUSH_POP_COMMANDS:
             try:
                 return int(self.current_line().split()[2])
             except ValueError:

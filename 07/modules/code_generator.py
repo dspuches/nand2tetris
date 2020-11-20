@@ -16,30 +16,32 @@ class CodeGenerator():
     # Init SP, LCL, ARG, THIS, and THAT
     def generate_preamble(self):
         asm_cmds = [
+            "// preamble",
             "@256",             # SP=256
             "D=A",
             "@SP",
             "M=D",
-
+            "// LCL=300",
             "@300",             # LCL=300
             "D=A",
             "@LCL",
             "M=D",
-            
+            "// ARG=400",
             "@400",             # ARG=400
             "D=A",
             "@ARG",
             "M=D",
-            
+            "// THIS=3000",
             "@3000",             # THIS=3000
             "D=A",
             "@THIS",
             "M=D",
-            
+            "// THAT=3010",
             "@3010",             # THAT=3010
             "D=A",
             "@THAT",
-            "M=D",        
+            "M=D",
+            "// end preamble"     
         ]
         return asm_cmds
 
@@ -69,22 +71,20 @@ class CodeGenerator():
 
     # generates push and pop asm commands
     def generate_push_pop(self, command, segment, index):
-        if command is not config.C_PUSH:
+        if command not in config.PUSH_POP_COMMANDS:
             raise CodeError(command, "Is not a valid push or pop command")
         asm_cmds = []
 
         if command == config.C_PUSH:
-            if segment not in config.PUSH_SEGMENTS:
-                raise CodeError(segment, "Cannot process segment")
-            # if segment == config.S_CONSTANT:
-            #     return self._asm_push_constant(index)
-
-            switch = {
-                config.S_CONSTANT: self._asm_push_constant,
-                #config.S_LOCAL: self._asm_push_local,
-            }
-            func = switch.get(segment)
-            return func(index)
+            if segment not in config.SEGMENTS.keys():
+                raise CodeError(segment, "Cannot process segment for push command")
+            
+            # push the value of segment[index] to the stack
+            return self._asm_push_segment(segment, index)
+        if command == config.C_POP:
+            if segment not in config.SEGMENTS.keys() or segment == config.S_CONSTANT:
+                raise CodeError(segment, "Cannot process segment for pop command")
+            return self._asm_pop_segment(segment, index)
     
     # generates asm for the add VM arithemteic command
     def _a_add(self):
@@ -216,7 +216,7 @@ class CodeGenerator():
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
 
-    # helper method to push a constant to the stack
+    # helper method to push a constant (index) to the stack
     def _asm_push_constant(self, index):
         asm_cmds = [
             "@{}".format(index),
@@ -224,10 +224,85 @@ class CodeGenerator():
         ]
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
+    
+    def _asm_push_temp(self, index):
+        asm_cmds = [
+            "@{}".format(config.S_TEMP_BASE),# A=5
+            "D=A",                           # D=5
+            "@{}".format(index),             # A=index
+            "D=D+A",                         # D=5+index
+            "A=D",                           # A=5+index
+            "D=M",                           # D=M[5+index]
+        ]
+        asm_cmds.extend(self._asm_push_d())
+        return asm_cmds
 
-    # helper method to push a the value pointed to by LCL to the stack
-    def _asm_push_local(self, index):
-        return []
+    def _asm_pop_temp(self, index):
+        asm_cmds = [
+            "@{}".format(config.S_TEMP_BASE),
+            "D=A",
+            "@{}".format(index),
+            "D=D+A",
+            "@R13",
+            "M=D",
+        ]
+        asm_cmds.extend(self._asm_pop_d())
+        asm_cmds.extend([
+            "@R13",
+            "A=M",
+            "M=D",
+        ])
+        return asm_cmds
+    
+    # pushes the value mapped at segment[index] onto the stack.
+    def _asm_push_segment(self, segment, index):
+        if segment not in config.SEGMENTS.keys():
+            raise CodeError(segment, "No predefined symbol is defined for this segment")
+        if segment == config.S_CONSTANT:
+            return self._asm_push_constant(index)
+
+        if segment == config.S_TEMP:
+            return self._asm_push_temp(index)
+
+        asm_segment = config.SEGMENTS[segment]
+
+        asm_cmds = [
+            "@{}".format(asm_segment),       # A=LCL
+            "D=M",                           # D=*LCL
+            "@{}".format(index),             # A=index
+            "D=D+A",                         # D=LCL+index
+            "A=D",                           # A=LCL+index
+            "D=M",                           # D=M[LCL+index]
+        ]
+        asm_cmds.extend(self._asm_push_d())
+        return asm_cmds
+    
+    # pop the value pointed to by SP into segment[index] 
+    def _asm_pop_segment(self, segment, index):
+        if segment not in config.SEGMENTS.keys() or segment == config.S_CONSTANT:
+            raise CodeError(segment, "No predefined symbol is defined for this segment")
+
+        if segment == config.S_TEMP:
+            return self._asm_pop_temp(index)
+
+        asm_segment = config.SEGMENTS[segment]
+        
+        asm_cmds = [
+            "@{}".format(asm_segment),
+            "D=M",
+            "@{}".format(index),
+            "D=D+A",
+            "@R13",
+            "M=D",
+        ]
+        asm_cmds.extend(self._asm_pop_d())
+        asm_cmds.extend([
+            "@R13",
+            "A=M",
+            "M=D",
+        ])
+        return asm_cmds
+        
     
     # helper method to push the value of the D register to the stack
     def _asm_push_d(self):
@@ -273,4 +348,13 @@ class CodeGenerator():
             "M=M+1",
         ]
         return asm_cmds
+
+
+    # maps a segment name in vm syntax to the pre-defined asm symbol
+    # note that this should not be called for constant
+    def _segment_to_sym(self, segment):
+        if segment not in config.SEGMENT_MAPPINGS.keys():
+            raise CodeError(segment, "No predefined symbol is defined for this segment")
+        return config.SEGMENT_MAPPINGS[segment]
+
 

@@ -56,7 +56,7 @@ def main(input):
                 if parser.command_type() is config.C_EMPTY_LINE:
                     # skip whitespace/blank lines
                     continue
-                if parser.command_type() == config.C_PUSH:
+                if parser.command_type() in config.PUSH_POP_COMMANDS:
                     asm_output.extend(code_gen.generate_push_pop(parser.command_type(), parser.arg1(), parser.arg2()))
                 if parser.command_type() == config.C_ARITHMETIC:
                     asm_output.extend(code_gen.generate_arithmetic(parser.arg1()))
