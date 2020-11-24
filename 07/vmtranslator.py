@@ -74,7 +74,6 @@ def main(input):
             f.write(line)
             f.write("\n")
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="input .vm file or directory containing .vm files")
