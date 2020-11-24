@@ -50,6 +50,7 @@ class CodeGenerator():
     # |     x     |
     # |     y     |
     # |           | <- SP
+    # unary operators will only process y
     def generate_arithmetic(self, command):
         if command not in config.ARITHMETIC_COMMANDS:
             raise CodeError(command, "Is not a valid arithmetic command")
@@ -73,6 +74,7 @@ class CodeGenerator():
     def generate_push_pop(self, command, segment, index):
         if command not in config.PUSH_POP_COMMANDS:
             raise CodeError(command, "Is not a valid push or pop command")
+
         asm_cmds = []
 
         if command == config.C_PUSH:
@@ -285,7 +287,7 @@ class CodeGenerator():
     def _asm_pop_pointer(self, index):
         if index < 0 or index > 1:
             raise CodeError(index, "index must be between 0 and 1 (inclusive)")
-        
+
         asm_cmds = [
             "@{}".format(config.S_POINTER_BASE),
             "D=A",
@@ -315,15 +317,16 @@ class CodeGenerator():
         if segment == config.S_POINTER:
             return self._asm_push_pointer(index)
 
+        # if we got this far, process the push command as 
+        # pushing the value at segment[index] onto the stack
         asm_segment = config.SEGMENTS[segment]
-
         asm_cmds = [
-            "@{}".format(asm_segment),       # A=LCL
-            "D=M",                           # D=*LCL
+            "@{}".format(asm_segment),       # A=SEG
+            "D=M",                           # D=*SEG
             "@{}".format(index),             # A=index
-            "D=D+A",                         # D=LCL+index
-            "A=D",                           # A=LCL+index
-            "D=M",                           # D=M[LCL+index]
+            "D=D+A",                         # D=SEG+index
+            "A=D",                           # A=SEG+index
+            "D=M",                           # D=M[SEG+index]
         ]
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
@@ -339,8 +342,9 @@ class CodeGenerator():
         if segment == config.S_POINTER:
             return self._asm_pop_pointer(index)
 
+        # if we got this far, process the push command as 
+        # popping from stack and storing at value at segment[index]
         asm_segment = config.SEGMENTS[segment]
-        
         asm_cmds = [
             "@{}".format(asm_segment),
             "D=M",
@@ -356,7 +360,6 @@ class CodeGenerator():
             "M=D",
         ])
         return asm_cmds
-        
     
     # helper method to push the value of the D register to the stack
     def _asm_push_d(self):

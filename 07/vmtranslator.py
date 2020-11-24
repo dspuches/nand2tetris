@@ -8,8 +8,6 @@ from modules.code_error import CodeError
 from modules.code_generator import CodeGenerator
 from modules import config
 
-
-
 def main(input):
     infiles = []
     # determine if the inputs is a directory or vmfile
@@ -19,6 +17,8 @@ def main(input):
         output = input.strip(".vm")
         output = "{}.asm".format(output)
     else:
+        # input is a directory
+        # output file name should be <dirname>.asm located in that directory
         try:
             files = os.listdir(input)
             for f in files:
@@ -30,7 +30,6 @@ def main(input):
         except Exception as e:
             print("Error attempting to read directory: {}".format(e))
             exit(1)
-
 
     # if empty, output error and exit
     if not infiles:
