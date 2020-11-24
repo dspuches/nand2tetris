@@ -256,6 +256,37 @@ class CodeGenerator():
         ])
         return asm_cmds
     
+    # helper method to push from the pointer segment
+    def _asm_push_pointer(self, index):
+        asm_cmds = [
+            "@{}".format(config.S_POINTER_BASE),# A=3
+            "D=A",                              # D=3
+            "@{}".format(index),                # A=index
+            "D=D+A",                            # D=3+index
+            "A=D",                              # A=3+index
+            "D=M",                              # D=M[3+index]
+        ]
+        asm_cmds.extend(self._asm_push_d())
+        return asm_cmds
+    
+    # helper method to pop into the pointer segment
+    def _asm_pop_pointer(self, index):
+        asm_cmds = [
+            "@{}".format(config.S_POINTER_BASE),
+            "D=A",
+            "@{}".format(index),
+            "D=D+A",
+            "@R13",
+            "M=D",
+        ]
+        asm_cmds.extend(self._asm_pop_d())
+        asm_cmds.extend([
+            "@R13",
+            "A=M",
+            "M=D",
+        ])
+        return asm_cmds
+    
     # pushes the value mapped at segment[index] onto the stack.
     def _asm_push_segment(self, segment, index):
         if segment not in config.SEGMENTS.keys():
@@ -265,6 +296,9 @@ class CodeGenerator():
 
         if segment == config.S_TEMP:
             return self._asm_push_temp(index)
+
+        if segment == config.S_POINTER:
+            return self._asm_push_pointer(index)
 
         asm_segment = config.SEGMENTS[segment]
 
@@ -286,6 +320,9 @@ class CodeGenerator():
 
         if segment == config.S_TEMP:
             return self._asm_pop_temp(index)
+        
+        if segment == config.S_POINTER:
+            return self._asm_pop_pointer(index)
 
         asm_segment = config.SEGMENTS[segment]
         

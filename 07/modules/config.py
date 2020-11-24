@@ -9,7 +9,9 @@ S_ARGUMENT = "argument"
 S_THIS = "this"
 S_THAT = "that"
 S_TEMP = "temp"
+S_POINTER = "pointer"
 S_TEMP_BASE = 5
+S_POINTER_BASE = 3
 
 ASM_LOCAL = "LCL"
 ASM_ARGUMENT = "ARG"
@@ -35,6 +37,9 @@ SEGMENTS = {
     S_THAT: ASM_THAT,
     S_CONSTANT: None,
     S_TEMP: None,
+    S_POINTER: None,
+    S_THIS: ASM_THIS,
+    S_THAT: ASM_THAT,
 }
 
 
