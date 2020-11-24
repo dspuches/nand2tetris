@@ -225,6 +225,7 @@ class CodeGenerator():
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
     
+    # helper method to push from the temp segment
     def _asm_push_temp(self, index):
         asm_cmds = [
             "@{}".format(config.S_TEMP_BASE),# A=5
@@ -237,6 +238,7 @@ class CodeGenerator():
         asm_cmds.extend(self._asm_push_d())
         return asm_cmds
 
+    # helper method to pop into the temp segment
     def _asm_pop_temp(self, index):
         asm_cmds = [
             "@{}".format(config.S_TEMP_BASE),
@@ -348,13 +350,3 @@ class CodeGenerator():
             "M=M+1",
         ]
         return asm_cmds
-
-
-    # maps a segment name in vm syntax to the pre-defined asm symbol
-    # note that this should not be called for constant
-    def _segment_to_sym(self, segment):
-        if segment not in config.SEGMENT_MAPPINGS.keys():
-            raise CodeError(segment, "No predefined symbol is defined for this segment")
-        return config.SEGMENT_MAPPINGS[segment]
-
-
