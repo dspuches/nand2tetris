@@ -73,10 +73,6 @@ def main(input):
         for line in asm_output:
             f.write(line)
             f.write("\n")
-        
-
-    
-
 
 
 if __name__ == '__main__':
