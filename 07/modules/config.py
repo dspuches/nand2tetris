@@ -42,9 +42,7 @@ SEGMENTS = {
     S_THAT: ASM_THAT,
 }
 
-
 PUSH_POP_COMMANDS = [
     "push",
     "pop"
 ]
-
