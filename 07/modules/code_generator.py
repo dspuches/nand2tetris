@@ -226,7 +226,11 @@ class CodeGenerator():
         return asm_cmds
     
     # helper method to push from the temp segment
+    # index must be between 0 and 7 inclusive
     def _asm_push_temp(self, index):
+        if index < 0 or index > 7:
+            raise CodeError(index, "index must be between 0 and 7 (inclusive)")
+
         asm_cmds = [
             "@{}".format(config.S_TEMP_BASE),# A=5
             "D=A",                           # D=5
@@ -239,7 +243,11 @@ class CodeGenerator():
         return asm_cmds
 
     # helper method to pop into the temp segment
+    # index must be between 0 and 7 inclusive
     def _asm_pop_temp(self, index):
+        if index < 0 or index > 7:
+            raise CodeError(index, "index must be between 0 and 7 (inclusive)")
+
         asm_cmds = [
             "@{}".format(config.S_TEMP_BASE),
             "D=A",
@@ -257,7 +265,11 @@ class CodeGenerator():
         return asm_cmds
     
     # helper method to push from the pointer segment
+    # index must be between 0 and 1 inclusive
     def _asm_push_pointer(self, index):
+        if index < 0 or index > 1:
+            raise CodeError(index, "index must be between 0 and 1 (inclusive)")
+        
         asm_cmds = [
             "@{}".format(config.S_POINTER_BASE),# A=3
             "D=A",                              # D=3
@@ -271,6 +283,9 @@ class CodeGenerator():
     
     # helper method to pop into the pointer segment
     def _asm_pop_pointer(self, index):
+        if index < 0 or index > 1:
+            raise CodeError(index, "index must be between 0 and 1 (inclusive)")
+        
         asm_cmds = [
             "@{}".format(config.S_POINTER_BASE),
             "D=A",
