@@ -6,11 +6,22 @@ class CodeGenerator():
 
     Attributes:
     """
-    def __init__(self):
+    def __init__(self, vmfile=None):
         # counters for labels generated during comparisons
         self._a_eq_ctr = 1
         self._a_gt_ctr = 1
         self._a_lt_ctr = 1
+        self._vmfile = vmfile
+    
+    # return value of the vmfile property
+    @property
+    def vmfile(self):
+        return self._vmfile
+    
+    # set the value of the vmfile property
+    @vmfile.setter
+    def vmfile(self, newfile):
+        self._vmfile = newfile
 
     # generate preamble asm code
     # Init SP, LCL, ARG, THIS, and THAT
@@ -304,6 +315,34 @@ class CodeGenerator():
         ])
         return asm_cmds
     
+    def _asm_push_static(self, index):
+        if self.vmfile == None:
+            raise CodeError("vmfile", "vmfile must be defined for push static")
+        asm_cmds = [
+            "@{}.{}".format(self.vmfile, index),
+            "D=M",
+        ]
+        asm_cmds.extend(self._asm_push_d())
+        return asm_cmds
+    
+    def _asm_pop_static(self, index):
+        if self.vmfile == None:
+            raise CodeError("vmfile", "vmfile must be defined for pop static")
+
+        asm_cmds = [
+            "@{}.{}".format(self.vmfile, index),
+            "D=A",
+            "@R13",
+            "M=D",
+        ]
+        asm_cmds.extend(self._asm_pop_d())
+        asm_cmds.extend([
+            "@R13",
+            "A=M",
+            "M=D",
+        ])
+        return asm_cmds
+
     # pushes the value mapped at segment[index] onto the stack.
     def _asm_push_segment(self, segment, index):
         if segment not in config.SEGMENTS.keys():
@@ -316,6 +355,9 @@ class CodeGenerator():
 
         if segment == config.S_POINTER:
             return self._asm_push_pointer(index)
+
+        if segment == config.S_STATIC:
+            return self._asm_push_static(index)
 
         # if we got this far, process the push command as 
         # pushing the value at segment[index] onto the stack
@@ -341,6 +383,9 @@ class CodeGenerator():
         
         if segment == config.S_POINTER:
             return self._asm_pop_pointer(index)
+        
+        if segment == config.S_STATIC:
+            return self._asm_pop_static(index)
 
         # if we got this far, process the push command as 
         # popping from stack and storing at value at segment[index]

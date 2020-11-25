@@ -10,6 +10,7 @@ S_THIS = "this"
 S_THAT = "that"
 S_TEMP = "temp"
 S_POINTER = "pointer"
+S_STATIC = "static"
 S_TEMP_BASE = 5
 S_POINTER_BASE = 3
 
@@ -40,6 +41,7 @@ SEGMENTS = {
     S_POINTER: None,
     S_THIS: ASM_THIS,
     S_THAT: ASM_THAT,
+    S_STATIC: None,
 }
 
 PUSH_POP_COMMANDS = [

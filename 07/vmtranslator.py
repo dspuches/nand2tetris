@@ -46,10 +46,14 @@ def main(input):
         vm_input = []
         with open(file) as f:
             vm_input = f.readlines()
-        
+        vmfile = file.strip(".vm")
+        vmfile = os.path.split(vmfile)[-1]
+
         # each vm file gets its own parser
         parser = Parser(vm_input)
         while parser.has_more_commands():
+            # set vmfile name, used to generate static variable symbols
+            code_gen.vmfile = vmfile
             parser.advance()
             try:
                 if parser.command_type() is config.C_EMPTY_LINE:
