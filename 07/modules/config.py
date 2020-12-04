@@ -39,8 +39,6 @@ SEGMENTS = {
     S_CONSTANT: None,
     S_TEMP: None,
     S_POINTER: None,
-    S_THIS: ASM_THIS,
-    S_THAT: ASM_THAT,
     S_STATIC: None,
 }
 
