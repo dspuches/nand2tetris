@@ -12,6 +12,7 @@ class CodeGenerator():
         self._a_gt_ctr = 1
         self._a_lt_ctr = 1
         self._vmfile = vmfile
+        self._func_stack = [""]
     
     # return value of the vmfile property
     @property
@@ -99,6 +100,31 @@ class CodeGenerator():
                 raise CodeError(segment, "Cannot process segment for pop command")
             return self._asm_pop_segment(segment, index)
     
+    # generates asm for label
+    def generate_label(self, label):
+        asm_cmds = ["({}${})".format(self._func_stack[-1], label)]
+        return asm_cmds
+    
+    # generates asm for goto
+    def generate_goto(self, label):
+        asm_cmds = [
+            "@{}${}".format(self._func_stack[-1], label),
+            "0;JMP",
+        ]
+        return asm_cmds
+
+    # generate asm for if-goto
+    # pop the topmost value from the stack
+    # if the value != 0, then jump to label
+    # else, continue as normal
+    def generate_if(self, label):
+        asm_cmds = self._asm_pop_d()
+        asm_cmds.extend([
+            "@{}${}".format(self._func_stack[-1], label),
+            "D;JNE"
+        ])
+        return asm_cmds
+
     # generates asm for the add VM arithemteic command
     def _a_add(self):
         asm_cmds = self._asm_pop_d()            # SP--;D=*M[SP]

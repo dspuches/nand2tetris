@@ -38,7 +38,8 @@ def main(input):
     
     # single code generator for all vm files, single ASM output
     code_gen = CodeGenerator()
-    asm_output = code_gen.generate_preamble()
+    #asm_output = code_gen.generate_preamble()
+    asm_output = []
 
     # loop through all .vm files
     for file in infiles:
@@ -63,6 +64,12 @@ def main(input):
                     asm_output.extend(code_gen.generate_push_pop(parser.command_type(), parser.arg1(), parser.arg2()))
                 elif parser.command_type() == config.C_ARITHMETIC:
                     asm_output.extend(code_gen.generate_arithmetic(parser.arg1()))
+                elif parser.command_type() == config.C_LABEL:
+                    asm_output.extend(code_gen.generate_label(parser.arg1()))
+                elif parser.command_type() == config.C_GOTO:
+                    asm_output.extend(code_gen.generate_goto(parser.arg1()))
+                elif parser.command_type() == config.C_IF:
+                    asm_output.extend(code_gen.generate_if(parser.arg1()))
                     
             except ParseError as err:
                 print("Parser error. Expression: <{}>. Error detail: {}".format(err.expression, err.message))
