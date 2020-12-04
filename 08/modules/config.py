@@ -46,3 +46,17 @@ PUSH_POP_COMMANDS = [
     "push",
     "pop"
 ]
+
+COMMANDS = {
+    "add": {"args": 0, "type": C_ARITHMETIC},
+    "sub": {"args": 0, "type": C_ARITHMETIC},
+    "neg": {"args": 0, "type": C_ARITHMETIC},
+    "eq": {"args": 0, "type": C_ARITHMETIC},
+    "gt": {"args": 0, "type": C_ARITHMETIC},
+    "lt": {"args": 0, "type": C_ARITHMETIC},
+    "and": {"args": 0, "type": C_ARITHMETIC},
+    "or": {"args": 0, "type": C_ARITHMETIC},
+    "not": {"args": 0, "type": C_ARITHMETIC},
+    "push": {"args": 2, "type": C_PUSH},
+    "pop": {"args": 2, "type": C_POP},
+}

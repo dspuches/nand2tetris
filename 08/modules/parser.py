@@ -36,44 +36,40 @@ class Parser():
     def command_type(self):
         line = self.current_line()
         split = line.split()
-
+        
         if len(split) == 0:
             return config.C_EMPTY_LINE
         
-        if len(split) == 1 and split[0] in config.ARITHMETIC_COMMANDS:
-            return config.C_ARITHMETIC
-
-        if len(split) == 3 and split[0] in config.PUSH_POP_COMMANDS:
-            if split[0] == "push":
-                return config.C_PUSH
-            else:
-                return config.C_POP
+        command = split[0]
+        nargs = len(split) - 1
         
-        raise ParseError(self.current_line(), "Cannot determine command type")
+        if command in config.COMMANDS.keys():
+            # valid command, check # of arguments
+            if config.COMMANDS[command]["args"] == nargs:
+                return config.COMMANDS[command]["type"]
+            raise ParseError(self.current_line(), "Invalid number of arguments for this command.")
+        raise ParseError(self.current_line(), "Invalid command")
         
 
     # return the first argument of the current command
     def arg1(self):
-        if self.command_type() == config.C_ARITHMETIC:
+        # if an exeception is raised, its an invalid command or has wrong # of params
+        cmd_type = self.command_type()
+
+        # special case for arithmetic commands, the command itself is arg1.
+        if cmd_type == config.C_ARITHMETIC:
             return self.current_line()
         
-        if self.command_type() in config.PUSH_POP_COMMANDS:
-            arg1 = self.current_line().split()[1]
-            if arg1 in config.SEGMENTS.keys():
-                return arg1
-            else:
-                raise ParseError(self.current_line(), "Invalid segment")
+        split = self.current_line().split()
+        return split[1]
         
-        raise ParseError(self.current_line(), "Cannot determine arg1 for this command type")
-    
     # return the second argument of the current command
     def arg2(self):
-        type = self.command_type()
+        # if an exeception is raised, its an invalid command or has wrong # of params
+        cmd_type = self.command_type()
+        split = self.current_line().split()
 
-        if type in config.PUSH_POP_COMMANDS:
-            try:
-                return int(self.current_line().split()[2])
-            except ValueError:
-                raise ParseError(self.current_line(), "arg2 must be an integer")
-        
-        raise ParseError(self.current_line(), "Cannot determine arg2 for this command type")
+        try:
+            return int(split[2])
+        except ValueError:
+            raise ParseError(self.current_line(), "arg2 must be an integer")
