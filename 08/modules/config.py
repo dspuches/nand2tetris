@@ -2,6 +2,12 @@ C_EMPTY_LINE = "C_EMPTY_LINE"
 C_PUSH = "push"
 C_POP = "pop"
 C_ARITHMETIC = "C_ARITHMETIC"
+C_CALL = "C_CALL"
+C_FUNCTION = "C_FUNCTION"
+C_RETURN = "C_RETURN"
+C_LABEL = "C_LABEL"
+C_GOTO = "C_GOTO"
+C_IF = "C_IF"
 
 S_CONSTANT = "constant"
 S_LOCAL = "local"
@@ -59,4 +65,10 @@ COMMANDS = {
     "not": {"args": 0, "type": C_ARITHMETIC},
     "push": {"args": 2, "type": C_PUSH},
     "pop": {"args": 2, "type": C_POP},
+    "call": {"args": 2, "type": C_CALL},
+    "function": {"args": 2, "type": C_FUNCTION},
+    "return": {"args": 0, "type": C_RETURN},
+    "label": {"args": 1, "type": C_LABEL},
+    "goto": {"args": 1, "type": C_GOTO},
+    "if-goto": {"args": 1, "type": C_IF},
 }
