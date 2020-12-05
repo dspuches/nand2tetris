@@ -12,7 +12,8 @@ class CodeGenerator():
         self._a_gt_ctr = 1
         self._a_lt_ctr = 1
         self._vmfile = vmfile
-        self._func_stack = [""]
+        self._current_function = None
+        self._function_id = 1
     
     # return value of the vmfile property
     @property
@@ -26,35 +27,14 @@ class CodeGenerator():
 
     # generate preamble asm code
     # Init SP, LCL, ARG, THIS, and THAT
-    def generate_preamble(self):
+    def generate_init(self):
         asm_cmds = [
-            "// preamble",
             "@256",             # SP=256
             "D=A",
             "@SP",
             "M=D",
-            "// LCL=300",
-            "@300",             # LCL=300
-            "D=A",
-            "@LCL",
-            "M=D",
-            "// ARG=400",
-            "@400",             # ARG=400
-            "D=A",
-            "@ARG",
-            "M=D",
-            "// THIS=3000",
-            "@3000",             # THIS=3000
-            "D=A",
-            "@THIS",
-            "M=D",
-            "// THAT=3010",
-            "@3010",             # THAT=3010
-            "D=A",
-            "@THAT",
-            "M=D",
-            "// end preamble"     
         ]
+        asm_cmds.extend(self.generate_call("Sys.init", 0))
         return asm_cmds
 
     # generates the arithmetic ASM commands
@@ -102,13 +82,15 @@ class CodeGenerator():
     
     # generates asm for label
     def generate_label(self, label):
-        asm_cmds = ["({}${})".format(self._func_stack[-1], label)]
+        if len(self._current_function) is None:
+            raise CodeError(label, "Labels must be defined within a function")
+        asm_cmds = ["({}${})".format(self._current_function, label)]
         return asm_cmds
     
     # generates asm for goto
     def generate_goto(self, label):
         asm_cmds = [
-            "@{}${}".format(self._func_stack[-1], label),
+            "@{}${}".format(self._current_function, label),
             "0;JMP",
         ]
         return asm_cmds
@@ -120,8 +102,154 @@ class CodeGenerator():
     def generate_if(self, label):
         asm_cmds = self._asm_pop_d()
         asm_cmds.extend([
-            "@{}${}".format(self._func_stack[-1], label),
+            "@{}${}".format(self._current_function, label),
             "D;JNE"
+        ])
+        return asm_cmds
+
+    # generate asm for function definition
+    def generate_function(self, name, num_locals):
+        # store function name so we can appropriately name function labels
+        self._current_function = name
+        asm_cmds = [
+            "({})".format(name)
+        ]
+        # initialize the local vars (on stack) to zero
+        for i in range(num_locals):
+            asm_cmds.extend(self._asm_push_constant(0))
+        return asm_cmds
+    
+    # generates asm for the call command
+    def generate_call(self, name, num_args):
+        return_label = "{}.{}.return".format(name, self._function_id)
+        self._function_id += 1
+
+        asm_cmds = []
+        # push return address onto the stack
+        asm_cmds.extend(self._asm_push_a(return_label))
+        # push LCL
+        asm_cmds.extend(self._asm_push_m("LCL"))
+        # push ARG
+        asm_cmds.extend(self._asm_push_m("ARG"))
+        # push THIS
+        asm_cmds.extend(self._asm_push_m("THIS"))
+        # push THAT
+        asm_cmds.extend(self._asm_push_m("THAT"))
+        # ARG = SP-num_args-5
+        asm_cmds.extend([
+            "@SP",
+            "D=M",
+            "@{}".format(num_args),
+            "D=D-A",
+            "@5",
+            "D=D-A",
+            "@ARG",
+            "M=D",
+        ])
+
+        # LCL = SP
+        asm_cmds.extend([
+            "@SP",
+            "D=M",
+            "@LCL",
+            "M=D",
+        ])
+
+        # goto function
+        asm_cmds.extend([
+            "@{}".format(name),
+            "0;JMP",
+        ])
+
+        # (return_label)
+        asm_cmds.append("({})".format(return_label))
+        
+        return asm_cmds
+    
+    # generates asm for return
+    def generate_return(self):
+        asm_cmds = []
+        # FRAME = LCL (R13 will be FRAME)
+        asm_cmds.extend([
+            "@LCL",
+            "D=M",
+            "@R13",
+            "M=D",
+        ])
+        # RET = *(FRAME - 5) (R14 will be RET)
+        asm_cmds.extend([
+            "@5",
+            "D=D-A",
+            "A=D",
+            "D=M",
+            "@R14",
+            "M=D",
+        ])
+        # *ARG = pop() - pop from working stack and store the value at 
+        # the memory location pointed to by ARG
+        asm_cmds.extend(self._asm_pop_d())
+        asm_cmds.extend([
+            "@ARG",
+            "A=M",
+            "M=D",
+        ])
+        # SP = ARG + 1
+        asm_cmds.extend([
+            "@ARG",
+            "D=M",
+            "D=D+1",
+            "@SP",
+            "M=D",
+        ])
+        # THAT = *(FRAME-1)
+        asm_cmds.extend([
+            "@R13",
+            "D=M",
+            "@1",
+            "D=D-A",
+            "A=D",
+            "D=M",
+            "@THAT",
+            "M=D",
+        ])
+        # THIS = *(FRAME-2)
+        asm_cmds.extend([
+            "@R13",
+            "D=M",
+            "@2",
+            "D=D-A",
+            "A=D",
+            "D=M",
+            "@THIS",
+            "M=D",
+        ])
+        # ARG = *(FRAME-3)
+        asm_cmds.extend([
+            "@R13",
+            "D=M",
+            "@3",
+            "D=D-A",
+            "A=D",
+            "D=M",
+            "@ARG",
+            "M=D",
+        ])
+        # LCL = *(FRAME-4)
+        asm_cmds.extend([
+            "@R13",
+            "D=M",
+            "@4",
+            "D=D-A",
+            "A=D",
+            "D=M",
+            "@LCL",
+            "M=D",
+        ])
+        # goto RET
+        asm_cmds.extend([
+            "@R14",
+            "A=M",
+            "0;JMP"
         ])
         return asm_cmds
 
@@ -441,6 +569,26 @@ class CodeGenerator():
             "@SP",
             "M=M+1",
         ]
+        return asm_cmds
+
+    # helper method to call A instruction for value and push the contents
+    # of that to the stack
+    def _asm_push_a(self, value):
+        asm_cmds = [
+            "@{}".format(value),
+            "D=A",
+        ]
+        asm_cmds.extend(self._asm_push_d())
+        return asm_cmds
+    
+    # helper method to call A instruction for value and push the contents
+    # of M to the stack
+    def _asm_push_m(self, value):
+        asm_cmds = [
+            "@{}".format(value),
+            "D=M",
+        ]
+        asm_cmds.extend(self._asm_push_d())
         return asm_cmds
     
     # helper method to pop from the stack and store in the D register
