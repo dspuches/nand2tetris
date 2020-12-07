@@ -20,7 +20,7 @@ class Snake {
     }
 
     /**
-     * Initialize static variables 
+     * Initialize static variables and constants
      */
     function void init() {
         let SIZE = 8;
