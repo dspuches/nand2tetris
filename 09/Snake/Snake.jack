@@ -1,14 +1,14 @@
 class Snake {
     field int x;            // x coordinate of head in 64x32 game field
     field int y;            // y coordinate of head in 64x32 game field
-    field int size;         // size of rectangle, also figure exact pixel by
-                            // multiplying x or y by size
-    field int direction;    // 1 - up
+    static int SIZE;        // SIZE of rectangle, also figure exact pixel by
+                            // multiplying x or y by SIZE (constant)
+    static int direction;   // 1 - up
                             // 2 - down
                             // 3 - left
                             // 4 - right
-    field int max_x_pixel;  // largest x pixel index
-    field int max_y_pixel;  // largest y pixel index
+    static int MAX_X_PIXEL; // largest x pixel index (constant)
+    static int MAX_Y_PIXEL; // largest y pixel index (constant)
 
     /** 
      * Build a new Snake 
@@ -16,11 +16,18 @@ class Snake {
     constructor Snake new(int _x, int _y) {
         let x = _x;
         let y = _y;
-        let size = 8;
-        let direction = 4;
-        let max_x_pixel = 511;
-        let max_y_pixel = 255;
         return this;
+    }
+
+    /**
+     * Initialize static variables 
+     */
+    function void init() {
+        let SIZE = 8;
+        let direction = 4;
+        let MAX_X_PIXEL = 511;
+        let MAX_Y_PIXEL = 255;
+        return;
     }
 
     /**
@@ -30,10 +37,10 @@ class Snake {
         var int x_pixel;
         var int y_pixel;
 
-        let x_pixel = x * size;
-        let y_pixel = y * size;
+        let x_pixel = x * SIZE;
+        let y_pixel = y * SIZE;
         do Screen.setColor(true);
-        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + size - 1, y_pixel + size - 1);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SIZE - 1, y_pixel + SIZE - 1);
         return;
     }
 
@@ -188,16 +195,16 @@ class Snake {
         var int x_pixel;
         var int y_pixel;
 
-        let x_pixel = new_x * size;
-        let y_pixel = new_y * size;
+        let x_pixel = new_x * SIZE;
+        let y_pixel = new_y * SIZE;
 
         if ((x_pixel < 0) | (y_pixel < 0)) {
             return true;
         }
-        if ((x_pixel + size - 1) > max_x_pixel) {
+        if ((x_pixel + SIZE - 1) > MAX_X_PIXEL) {
             return true;
         }
-        if ((y_pixel + size - 1) > max_y_pixel) {
+        if ((y_pixel + SIZE - 1) > MAX_Y_PIXEL) {
             return true;
         }
         return false;
@@ -210,11 +217,11 @@ class Snake {
         var int x_pixel;
         var int y_pixel;
 
-        let x_pixel = Math.multiply(x, size);
-        let y_pixel = Math.multiply(y, size);
+        let x_pixel = Math.multiply(x, SIZE);
+        let y_pixel = Math.multiply(y, SIZE);
 
         do Screen.setColor(false);
-        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + size - 1, y_pixel + size - 1);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SIZE - 1, y_pixel + SIZE - 1);
         return;
     }
 
