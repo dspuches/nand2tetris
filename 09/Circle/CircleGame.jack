@@ -1,0 +1,47 @@
+class CircleGame {
+    field Circle circle;
+
+    constructor CircleGame new() {
+        let circle = Circle.new(100, 100, 10);
+        return this;
+    }
+
+    method void dispose() {
+        do circle.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void moveCircle() {
+
+        return;
+    }
+
+    method void run() {
+        var boolean running;
+        var char key;
+
+        let running = true;
+        let key = 0;
+
+        do circle.draw();
+
+        while(running) {
+            // wait until a key is pressed
+            let key = Keyboard.keyPressed();
+
+            if (key = 81) { let running = false; }      // q
+            if (key = 132) { do circle.moveRight(); }   // right arrow
+            if (key = 130) { do circle.moveLeft(); }    // left arrow
+            if (key = 131) { do circle.moveUp(); }      // up arrow
+            if (key = 133) { do circle.moveDown(); }    // down arrow
+            if (key = 90) { do circle.grow(); }         // z
+            if (key = 88) { do circle.shrink(); }       // x 
+
+            do circle.draw();
+            do Sys.wait(10);  // delays the next movement
+        }
+
+        return;
+    }
+}

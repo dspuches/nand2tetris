@@ -1,0 +1,111 @@
+class Circle {
+    field int x;
+    field int y;
+    field int radius;
+    field int screen_width;
+    field int screen_height;
+
+    constructor Circle new(int _x, int _y, int _radius) {
+        let x = _x;
+        let y = _y;
+        let radius = _radius;
+        let screen_width = 512;
+        let screen_height = 256;
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawCircle(x, y, radius);
+        return;
+    }
+
+    method void moveRight() {
+        var int new_x;
+        let new_x = x + 1;
+
+        if (check_bounds(new_x, y, radius)) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let x = x + 1;
+        }
+        return;
+    }
+
+    method void moveLeft() {
+        var int new_x;
+        let new_x = x - 1;
+
+        if (check_bounds(new_x, y, radius)) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let x = new_x;
+        }
+        return;
+    }
+
+    method void moveUp() {
+        var int new_y;
+        let new_y = y - 1;
+
+        if (check_bounds(x, new_y, radius)) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let y = new_y;
+        }
+        return;
+    }
+
+    method void moveDown() {
+        var int new_y;
+        let new_y = y + 1;
+
+        if (check_bounds(x, new_y, radius)) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let y = new_y;
+        }
+        return;
+    }
+
+    method void grow() {
+        var int new_radius;
+        let new_radius = radius + 1;
+
+        if (check_bounds(x, y, new_radius)) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let radius = new_radius;
+        }
+        return;
+    }
+
+    method void shrink() {
+        var int new_radius;
+        let new_radius = radius - 1;
+
+        if (new_radius > 2) {
+            do Screen.setColor(false);
+            do Screen.drawCircle(x, y, radius);
+            let radius = new_radius;
+        }
+        return;
+    }
+
+    method boolean check_bounds(int new_x, int new_y, int new_radius) {
+        var boolean valid;
+        let valid = true;
+
+        if ((new_x + new_radius) > (screen_width - 2)) { let valid = false; }
+        if ((new_x - new_radius) < 0) { let valid = false; }
+        if ((new_y + new_radius) > (screen_height - 2)) { let valid = false; }
+        if ((new_y - new_radius) < 0) { let valid = false; }
+
+        return valid;
+    }
+}

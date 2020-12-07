@@ -13,14 +13,19 @@ demo/
 08/*.asm
 08/FunctionCalls
 08/ProgramFlow
-09/
+09/*/*.vm
+09/Average
+09/BitmapEditor
+09/Fraction
+09/HelloWorld
+09/List
+09/Square
+09/*.pdf
 10/
 11/
 12/
 13/
 .vscode/
-
-
 
 
 # Byte-compiled / optimized / DLL files
