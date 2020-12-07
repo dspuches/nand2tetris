@@ -1,0 +1,228 @@
+class Snake {
+    field int x;            // x coordinate of head in 64x32 game field
+    field int y;            // y coordinate of head in 64x32 game field
+    field int size;         // size of rectangle, also figure exact pixel by
+                            // multiplying x or y by size
+    field int direction;    // 1 - up
+                            // 2 - down
+                            // 3 - left
+                            // 4 - right
+    field int max_x_pixel;  // largest x pixel index
+    field int max_y_pixel;  // largest y pixel index
+
+    /** 
+     * Build a new Snake 
+     */
+    constructor Snake new(int _x, int _y) {
+        let x = _x;
+        let y = _y;
+        let size = 8;
+        let direction = 4;
+        let max_x_pixel = 511;
+        let max_y_pixel = 255;
+        return this;
+    }
+
+    /**
+     * Draw the snake onto the screen.
+     */
+    method void draw() {
+        var int x_pixel;
+        var int y_pixel;
+
+        let x_pixel = x * size;
+        let y_pixel = y * size;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + size - 1, y_pixel + size - 1);
+        return;
+    }
+
+    /**
+     * Sets the new direction if it is appropriate. Direction can only be changed
+     * perpendicular to the current direction. If moving right or left, new direction
+     * can only be up or down. If moving up or down, new direction can only be left
+     * or right.  If an incorrect direction is passed to the method, no action is taken
+     */
+    method void setDirection(int new_direction) {
+        var boolean update_direction;
+
+        let update_direction = false;
+
+        // if we are moving right or left...
+        if ((direction = 4) | (direction = 3)) {
+            // only allow new direction to be up or down
+            if ((new_direction = 1) | (new_direction = 2)) {
+                let update_direction = true;
+            }
+        }
+
+        // if we are moving up or down...
+        if ((direction = 2) | (direction = 1)) {
+            // only allow new direction to be left or right
+            if ((new_direction = 4) | (new_direction = 3)) {
+                let update_direction = true;
+            }
+        }
+
+        if (update_direction) {
+            let direction = new_direction;
+        }
+        return;
+    }
+
+    /**
+     * Move the snake one block in its specified direction.
+     * Returns false if a collision occured attempting to move the snake
+     */
+    method boolean move() {
+        var boolean moved;
+
+        let moved = false;
+
+        if (direction = 4) {
+            if (moveRight()) {
+                let moved = true;
+            }
+        }
+        if (direction = 3) {
+            if (moveLeft()) {
+                let moved = true;
+            }
+        }
+        if (direction = 2) {
+            if (moveDown()) {
+                let moved = true;
+            }
+        }
+        if (direction = 1 ) {
+            if (moveUp()) {
+                let moved = true;
+            }
+        }
+        return moved;
+    }
+
+    /**
+     * Move the snake one block right. If a collision occurs, return
+     * false and do not move the snake
+     */
+    method boolean moveRight() {  
+        var int new_x;
+        
+        let new_x = x + 1;
+        if (~collision(new_x, y)) {
+
+            do erase();
+
+            let x = new_x;
+            do draw();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Move the snake one block left. If a collision occurs, return
+     * false and do not move the snake
+     */
+    method boolean moveLeft() {
+        var int new_x;
+
+        let new_x = x - 1;
+        if (~collision(new_x, y)) {
+            do erase();
+
+            let x = new_x;
+            do draw();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Move the snake one block up. If a collision occurs, return
+     * false and do not move the snake
+     */
+    method boolean moveUp() {
+        var int new_y;
+
+        let new_y = y - 1;
+        if (~collision(x, new_y)) {
+            do erase();
+
+            let y = new_y;
+            do draw();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Move the snake one block down. If a collision occurs, return
+     * false and do not move the snake
+     */
+    method boolean moveDown() {
+        var int new_y;
+
+        let new_y = y + 1;
+        if (~collision(x, new_y)) {
+            do erase();
+
+            let y = new_y;
+            do draw();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check if a collision will occur at the parameters specified
+     * Return true if a collision will occur
+     * return false if not
+     */
+    method boolean collision(int new_x, int new_y) {
+        var int x_pixel;
+        var int y_pixel;
+
+        let x_pixel = new_x * size;
+        let y_pixel = new_y * size;
+
+        if ((x_pixel < 0) | (y_pixel < 0)) {
+            return true;
+        }
+        if ((x_pixel + size - 1) > max_x_pixel) {
+            return true;
+        }
+        if ((y_pixel + size - 1) > max_y_pixel) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Erase the current snake
+     */
+    method void erase() {
+        var int x_pixel;
+        var int y_pixel;
+
+        let x_pixel = Math.multiply(x, size);
+        let y_pixel = Math.multiply(y, size);
+
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + size - 1, y_pixel + size - 1);
+        return;
+    }
+
+    /** 
+    * Free up memory
+    */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

@@ -1,0 +1,51 @@
+class SnakeGame {
+    field Snake snake;
+
+    constructor SnakeGame new() {
+        let snake = Snake.new(0, 0);
+        return this;
+    }
+
+    method void run() {
+        var boolean running;
+        var char key;
+
+        let running = true;
+        let key = 0;
+        do snake.draw();
+
+        // do nothing until a key is pressed
+        while (key = 0) {
+            let key = Keyboard.keyPressed();
+        }
+
+        while (running) {
+            // move the snake
+            let key = Keyboard.keyPressed();
+            if (key = 132) { do snake.setDirection(4); }       // right arrow
+            if (key = 130) { do snake.setDirection(3); }       // left arrow
+            if (key = 133) { do snake.setDirection(2); }       // down arrow
+            if (key = 131) { do snake.setDirection(1); }       // up arrow
+            if (~snake.move()) {
+                let running = false;
+            }
+            do Sys.wait(125);  // delays the next movement
+
+        }
+
+        do Output.printString("END");
+        
+        return;
+    }
+
+    method void updateDirection(int new_direction) {
+        do snake.setDirection(new_direction);
+        return;
+    }
+
+    method void dispose() {
+        do snake.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}
