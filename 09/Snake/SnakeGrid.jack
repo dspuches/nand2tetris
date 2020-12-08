@@ -44,6 +44,9 @@ class SnakeGrid {
         return this;
     }
 
+    /**
+     * Configure static variables
+     */
     function void init() {
         // setup statics
         let SEGMENT_SIZE = 16;
@@ -62,6 +65,8 @@ class SnakeGrid {
 
         let y_array = grid[x];
         let y_array[y] = true;
+
+        do drawSegment(x, y);
         return;
     }
 
@@ -73,6 +78,8 @@ class SnakeGrid {
 
         let y_array = grid[x];
         let y_array[y] = false;
+
+        do eraseSegment(x, y);
         return;
     }
 
@@ -86,6 +93,9 @@ class SnakeGrid {
         return y_array[y];
     }
 
+    /**
+     * Draw a single segment onto the screen at the coordinates specified
+     */
     method void drawSegment(int _x, int _y) {
         var int x_pixel;
         var int y_pixel;
@@ -99,6 +109,9 @@ class SnakeGrid {
         return;
     }
 
+    /**
+     * Erase the segment from the screen at the coordinates specified
+     */
     method void eraseSegment(int _x, int _y) {
         var int x_pixel;
         var int y_pixel;
@@ -112,6 +125,10 @@ class SnakeGrid {
         return;
     }
 
+    /**
+     * Return true if the coordinates specified has something in it, or is out of bounds.
+     * Return false otherwise
+     */
     method boolean collision(int new_x, int new_y) {
         var int x_pixel;
         var int y_pixel;

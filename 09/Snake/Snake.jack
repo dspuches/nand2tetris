@@ -10,7 +10,7 @@ class Snake {
     
 
     /** 
-     * Build a new Snake 
+     * Build a new Snake at x, y
      */
     constructor Snake new(int x, int y) {
         do Snake.init();
@@ -34,6 +34,7 @@ class Snake {
         do addSegment(x + 14, y);
         do addSegment(x + 15, y);
 
+        //grid.spawnApple();
         return this;
     }
 
@@ -187,10 +188,8 @@ class Snake {
 
         let new_x = head.x() + 1;
         if (~grid.collision(new_x, head.y())) {
-            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(new_x, head.y());
-            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -206,10 +205,8 @@ class Snake {
 
         let new_x = head.x() - 1;
         if (~grid.collision(new_x, head.y())) {
-            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(new_x, head.y());
-            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -225,10 +222,8 @@ class Snake {
 
         let new_y = head.y() - 1;
         if (~grid.collision(head.x(), new_y)) {
-            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(head.x(), new_y);
-            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -244,10 +239,8 @@ class Snake {
 
         let new_y = head.y() + 1;
         if (~grid.collision(head.x(), new_y)) {
-            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(head.x(), new_y);
-            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
