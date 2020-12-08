@@ -1,6 +1,4 @@
 class Snake {
-    // field int x;                // x coordinate of head in 64x32 game field
-    // field int y;                // y coordinate of head in 64x32 game field
     field SnakeSegment head;    // the snake body is a doubly linked list, head of snake
     field SnakeSegment tail;    // tail of snake
     static int SIZE;            // SIZE of rectangle, also figure exact pixel by
@@ -17,6 +15,24 @@ class Snake {
      */
     constructor Snake new(int x, int y) {
         do addSegment(x, y);
+        do addSegment(x + 1, y);
+        do addSegment(x + 2, y);
+        do addSegment(x + 3, y);
+        do addSegment(x + 4, y);
+        do addSegment(x + 5, y);
+        do addSegment(x + 6, y);
+        do addSegment(x + 7, y);
+        do addSegment(x + 8, y);
+        do addSegment(x + 9, y);
+        do addSegment(x + 10, y);
+        do addSegment(x + 11, y);
+        do addSegment(x + 12, y);
+        do addSegment(x + 13, y);
+        do addSegment(x + 14, y);
+        do addSegment(x + 15, y);
+        do addSegment(x + 16, y);
+        do addSegment(x + 17, y);
+        do addSegment(x + 18, y);
         return this;
     }
 
@@ -40,21 +56,58 @@ class Snake {
             let tail = segment;
             do segment.setNext(null);
             do segment.setPrev(null);
+        } else {
+            do head.setPrev(segment);
+            do segment.setNext(head);
+            let head = segment;
         }
         return;
     }
 
+    method void deleteTailSegment() {
+        var SnakeSegment temp;
+
+        if (tail = null) {
+            return;
+        }
+
+        let temp = tail;
+        let tail = tail.getPrev();
+        do tail.setNext(null);
+        do Memory.deAlloc(temp);
+        return;
+    }
+
     /**
-     * Draw the snake onto the screen.
+     * Draw the entire snake onto the screen.
      */
     method void draw() {
         var int x_pixel;
         var int y_pixel;
+        var SnakeSegment current;
+        var SnakeSegment next;
 
-        let x_pixel = head.x() * SIZE;
-        let y_pixel = head.y() * SIZE;
+        let current = head;
+        while (~(current = null)) {
+
+            let next = current.getNext();
+            do drawSegment(current);
+            // move on
+            let current = next;
+        }
+        return;
+    }
+
+    method void drawSegment(SnakeSegment segment) {
+        var int x_pixel;
+        var int y_pixel;
+
+        // draw the rectangle
+        let x_pixel = segment.x() * SIZE;
+        let y_pixel = segment.y() * SIZE;
         do Screen.setColor(true);
         do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SIZE - 1, y_pixel + SIZE - 1);
+
         return;
     }
 
@@ -129,13 +182,13 @@ class Snake {
      */
     method boolean moveRight() {  
         var int new_x;
-        
+
         let new_x = head.x() + 1;
         if (~collision(new_x, head.y())) {
-            do erase(head);
-
-            do head.setX(new_x);
-            do draw();
+            do erase(tail);
+            do deleteTailSegment();
+            do addSegment(new_x, head.y());
+            do drawSegment(head);
             return true;
         } else {
             return false;
@@ -151,10 +204,10 @@ class Snake {
 
         let new_x = head.x() - 1;
         if (~collision(new_x, head.y())) {
-            do erase(head);
-
-            do head.setX(new_x);
-            do draw();
+            do erase(tail);
+            do deleteTailSegment();
+            do addSegment(new_x, head.y());
+            do drawSegment(head);
             return true;
         } else {
             return false;
@@ -170,10 +223,10 @@ class Snake {
 
         let new_y = head.y() - 1;
         if (~collision(head.x(), new_y)) {
-            do erase(head);
-
-            do head.setY(new_y);
-            do draw();
+            do erase(tail);
+            do deleteTailSegment();
+            do addSegment(head.x(), new_y);
+            do drawSegment(head);
             return true;
         } else {
             return false;
@@ -189,10 +242,10 @@ class Snake {
 
         let new_y = head.y() + 1;
         if (~collision(head.x(), new_y)) {
-            do erase(head);
-
-            do head.setY(new_y);
-            do draw();
+            do erase(tail);
+            do deleteTailSegment();
+            do addSegment(head.x(), new_y);
+            do drawSegment(head);
             return true;
         } else {
             return false;
