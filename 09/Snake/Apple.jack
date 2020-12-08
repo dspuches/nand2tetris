@@ -14,12 +14,12 @@ class Apple {
         return;
     }
 
-    method void draw() {
-        return;
+    method int x() {
+        return x;
     }
 
-    method void erase() {
-        return;
+    method int y() {
+        return y;
     }
 
     method void dispose() {

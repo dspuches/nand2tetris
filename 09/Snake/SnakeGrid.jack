@@ -1,13 +1,14 @@
 class SnakeGrid {
     field Array grid;       // will be Array[x][y] elements
-    field int x;            // number of x (columns)
-    field int y;            // number of y (rows)
+    // field Apple apple;
 
     // static variables
     static int SEGMENT_SIZE;    // SEGMENT_SIZE of rectangle, also figure exact pixel by
                                 // multiplying x or y by SEGMENT_SIZE (constant)
     static int SCREEN_WIDTH;    // screen width in pixels
     static int SCREEN_HEIGHT;   // screen height in pixels
+    static int COLUMNS;
+    static int ROWS;
     static int MAX_X_PIXEL;     // largest x pixel index (constant)
     static int MAX_Y_PIXEL;     // largest y pixel index (constant)
 
@@ -23,16 +24,14 @@ class SnakeGrid {
         do SnakeGrid.init();
 
         // set up fields
-        let x = SCREEN_WIDTH / SEGMENT_SIZE;
-        let y = SCREEN_HEIGHT / SEGMENT_SIZE;
-        let grid = Array.new(x);
+        let grid = Array.new(COLUMNS);
 
         // loop through all x's and assign new array of y's
         let x_index = 0;
-        while (x_index < x) {
-            let y_array = Array.new(y);         // create the new array
+        while (x_index < COLUMNS) {
+            let y_array = Array.new(ROWS);         // create the new array
             let y_index = 0;                    // index to iterate new array
-            while (y_index < y) {
+            while (y_index < ROWS) {
                 let y_array[y_index] = false;    // make each element false (unoccupied)
                 let y_index = y_index + 1;              // move on
             }
@@ -54,6 +53,8 @@ class SnakeGrid {
         let SCREEN_WIDTH = 512;
         let MAX_X_PIXEL = SCREEN_WIDTH - 1;
         let MAX_Y_PIXEL = SCREEN_HEIGHT - 1;
+        let COLUMNS = SCREEN_WIDTH / SEGMENT_SIZE;
+        let ROWS = SCREEN_HEIGHT / SEGMENT_SIZE;
         return;
     }
 
@@ -166,7 +167,7 @@ class SnakeGrid {
         var int y_index;
         var Array y_array;
 
-        while (x_index < x) {
+        while (x_index < COLUMNS) {
             let y_array = grid[x_index];
             do y_array.dispose();
             let x_index = x_index + 1;
