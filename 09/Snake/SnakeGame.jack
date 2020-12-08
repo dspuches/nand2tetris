@@ -12,7 +12,6 @@ class SnakeGame {
 
         let running = true;
         let key = 0;
-        do snake.draw();
 
         // do nothing until a key is pressed
         while (key = 0) {

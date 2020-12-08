@@ -95,26 +95,6 @@ class Snake {
     }
 
     /**
-     * Draw the entire snake onto the screen.
-     */
-    method void draw() {
-        var int x_pixel;
-        var int y_pixel;
-        var SnakeSegment current;
-        var SnakeSegment next;
-
-        let current = head;
-        while (~(current = null)) {
-
-            let next = current.getNext();
-            do grid.drawSegment(current.x(), current.y());
-            // move on
-            let current = next;
-        }
-        return;
-    }
-
-    /**
      * Sets the new direction if it is appropriate. Direction can only be changed
      * perpendicular to the current direction. If moving right or left, new direction
      * can only be up or down. If moving up or down, new direction can only be left
