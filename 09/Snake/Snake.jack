@@ -1,19 +1,22 @@
 class Snake {
     field SnakeSegment head;    // the snake body is a doubly linked list, head of snake
     field SnakeSegment tail;    // tail of snake
-    static int SIZE;            // SIZE of rectangle, also figure exact pixel by
-                                // multiplying x or y by SIZE (constant)
+    field SnakeGrid grid;       // tracks what squares in the game grid are occupied
+
     static int direction;       // 1 - up
                                 // 2 - down
                                 // 3 - left
                                 // 4 - right
-    static int MAX_X_PIXEL;     // largest x pixel index (constant)
-    static int MAX_Y_PIXEL;     // largest y pixel index (constant)
+    
 
     /** 
      * Build a new Snake 
      */
     constructor Snake new(int x, int y) {
+        do Snake.init();
+
+        let grid = SnakeGrid.new();
+        
         do addSegment(x, y);
         do addSegment(x + 1, y);
         do addSegment(x + 2, y);
@@ -30,9 +33,7 @@ class Snake {
         do addSegment(x + 13, y);
         do addSegment(x + 14, y);
         do addSegment(x + 15, y);
-        do addSegment(x + 16, y);
-        do addSegment(x + 17, y);
-        do addSegment(x + 18, y);
+
         return this;
     }
 
@@ -40,10 +41,7 @@ class Snake {
      * Initialize static variables and constants
      */
     function void init() {
-        let SIZE = 8;
         let direction = 4;
-        let MAX_X_PIXEL = 511;
-        let MAX_Y_PIXEL = 255;
         return;
     }
 
@@ -54,6 +52,7 @@ class Snake {
         var SnakeSegment segment;
 
         let segment = SnakeSegment.new(x, y);
+        do grid.setOccupied(x, y);
         
         if ((head = null) & (tail = null)) {
             // if no segments exist, point head and tail to the new segment
@@ -75,15 +74,22 @@ class Snake {
      */
     method void deleteTailSegment() {
         var SnakeSegment temp;
+        var int _x;
+        var int _y;
 
         if (tail = null) {
             return;
         }
 
+        // get the tail, its x, and y
         let temp = tail;
+        let _x = temp.x();
+        let _y = temp.y();
+
         let tail = tail.getPrev();
         do tail.setNext(null);
         do Memory.deAlloc(temp);
+        do grid.setFree(_x, _y);
         return;
     }
 
@@ -100,26 +106,10 @@ class Snake {
         while (~(current = null)) {
 
             let next = current.getNext();
-            do drawSegment(current);
+            do grid.drawSegment(current.x(), current.y());
             // move on
             let current = next;
         }
-        return;
-    }
-
-    /**
-     * Draw a single SnakeSegment onto the screen
-     */
-    method void drawSegment(SnakeSegment segment) {
-        var int x_pixel;
-        var int y_pixel;
-
-        // draw the rectangle
-        let x_pixel = segment.x() * SIZE;
-        let y_pixel = segment.y() * SIZE;
-        do Screen.setColor(true);
-        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SIZE - 1, y_pixel + SIZE - 1);
-
         return;
     }
 
@@ -196,11 +186,11 @@ class Snake {
         var int new_x;
 
         let new_x = head.x() + 1;
-        if (~collision(new_x, head.y())) {
-            do eraseSegment(tail);
+        if (~grid.collision(new_x, head.y())) {
+            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(new_x, head.y());
-            do drawSegment(head);
+            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -215,11 +205,11 @@ class Snake {
         var int new_x;
 
         let new_x = head.x() - 1;
-        if (~collision(new_x, head.y())) {
-            do eraseSegment(tail);
+        if (~grid.collision(new_x, head.y())) {
+            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(new_x, head.y());
-            do drawSegment(head);
+            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -234,11 +224,11 @@ class Snake {
         var int new_y;
 
         let new_y = head.y() - 1;
-        if (~collision(head.x(), new_y)) {
-            do eraseSegment(tail);
+        if (~grid.collision(head.x(), new_y)) {
+            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(head.x(), new_y);
-            do drawSegment(head);
+            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
@@ -253,71 +243,15 @@ class Snake {
         var int new_y;
 
         let new_y = head.y() + 1;
-        if (~collision(head.x(), new_y)) {
-            do eraseSegment(tail);
+        if (~grid.collision(head.x(), new_y)) {
+            do grid.eraseSegment(tail.x(), tail.y());
             do deleteTailSegment();
             do addSegment(head.x(), new_y);
-            do drawSegment(head);
+            do grid.drawSegment(head.x(), head.y());
             return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * Check if a collision will occur at the parameters specified
-     * Return true if a collision will occur
-     * return false if not
-     */
-    method boolean collision(int new_x, int new_y) {
-        var int x_pixel;
-        var int y_pixel;
-        var SnakeSegment current;
-        var SnakeSegment next;
-
-        let x_pixel = new_x * SIZE;
-        let y_pixel = new_y * SIZE;
-
-        // check for collisions at edge of screen
-        if ((x_pixel < 0) | (y_pixel < 0)) {
-            return true;
-        }
-        if ((x_pixel + SIZE - 1) > MAX_X_PIXEL) {
-            return true;
-        }
-        if ((y_pixel + SIZE - 1) > MAX_Y_PIXEL) {
-            return true;
-        }
-
-        // check for collisions of the snake itself
-        let current = head;
-        while (~(current = null)) {
-            let next = current.getNext();
-            if (new_x = current.x()) {
-                if (new_y = current.y()) {
-                    return true;
-                }
-            }
-            let current = next;
-        }
-
-        // if we got this far, no collisions!
-        return false;
-    }
-
-    /**
-     * Erase the specified segment from the screen
-     */
-    method void eraseSegment(SnakeSegment segment) {
-        var int x_pixel;
-        var int y_pixel;
-
-        let x_pixel = segment.x() * SIZE;
-        let y_pixel = segment.y() * SIZE;
-
-        do Screen.setColor(false);
-        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SIZE - 1, y_pixel + SIZE - 1);
-        return;
     }
 
     /** 
@@ -333,6 +267,7 @@ class Snake {
             do current.dispose();
             let current = next;
         }
+        do grid.dispose();
         do Memory.deAlloc(this);
         return;
     }

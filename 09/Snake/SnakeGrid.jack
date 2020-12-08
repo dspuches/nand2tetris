@@ -1,0 +1,161 @@
+class SnakeGrid {
+    field Array grid;       // will be Array[x][y] elements
+    field int x;            // number of x (columns)
+    field int y;            // number of y (rows)
+
+    // static variables
+    static int SEGMENT_SIZE;    // SEGMENT_SIZE of rectangle, also figure exact pixel by
+                                // multiplying x or y by SEGMENT_SIZE (constant)
+    static int SCREEN_WIDTH;    // screen width in pixels
+    static int SCREEN_HEIGHT;   // screen height in pixels
+    static int MAX_X_PIXEL;     // largest x pixel index (constant)
+    static int MAX_Y_PIXEL;     // largest y pixel index (constant)
+
+    /**
+     * Construct a new SnakeGrid. Mark all grid locations as free initially (false)
+     */
+    constructor SnakeGrid new() {
+        var int x_index;
+        var int y_index;
+        var Array y_array;
+
+        // setup statics
+        do SnakeGrid.init();
+
+        // set up fields
+        let x = SCREEN_WIDTH / SEGMENT_SIZE;
+        let y = SCREEN_HEIGHT / SEGMENT_SIZE;
+        let grid = Array.new(x);
+
+        // loop through all x's and assign new array of y's
+        let x_index = 0;
+        while (x_index < x) {
+            let y_array = Array.new(y);         // create the new array
+            let y_index = 0;                    // index to iterate new array
+            while (y_index < y) {
+                let y_array[y_index] = false;    // make each element false (unoccupied)
+                let y_index = y_index + 1;              // move on
+            }
+            
+            let grid[x_index] = y_array;     // finally, store the y_array array at the current index
+            let x_index = x_index + 1;
+        }
+
+        return this;
+    }
+
+    function void init() {
+        // setup statics
+        let SEGMENT_SIZE = 16;
+        let SCREEN_HEIGHT = 256;
+        let SCREEN_WIDTH = 512;
+        let MAX_X_PIXEL = SCREEN_WIDTH - 1;
+        let MAX_Y_PIXEL = SCREEN_HEIGHT - 1;
+        return;
+    }
+
+    /**
+     * Mark a grid location as occupied (true)
+     */
+    method void setOccupied(int x, int y) {
+        var Array y_array;
+
+        let y_array = grid[x];
+        let y_array[y] = true;
+        return;
+    }
+
+    /**
+     * Mark a grid location as free (false)
+     */
+    method void setFree(int x, int y) {
+        var Array y_array;
+
+        let y_array = grid[x];
+        let y_array[y] = false;
+        return;
+    }
+
+    /**
+     * Return true if the grid location is occupied, false otherwise
+     */
+    method boolean isOccupied(int x, int y) {
+        var Array y_array;
+
+        let y_array = grid[x];
+        return y_array[y];
+    }
+
+    method void drawSegment(int _x, int _y) {
+        var int x_pixel;
+        var int y_pixel;
+
+        // draw the rectangle
+        let x_pixel = _x * SEGMENT_SIZE;
+        let y_pixel = _y * SEGMENT_SIZE;
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SEGMENT_SIZE - 1, y_pixel + SEGMENT_SIZE - 1);
+
+        return;
+    }
+
+    method void eraseSegment(int _x, int _y) {
+        var int x_pixel;
+        var int y_pixel;
+
+        let x_pixel = _x * SEGMENT_SIZE;
+        let y_pixel = _y * SEGMENT_SIZE;
+
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x_pixel, y_pixel, x_pixel + SEGMENT_SIZE - 1, y_pixel + SEGMENT_SIZE - 1);
+
+        return;
+    }
+
+    method boolean collision(int new_x, int new_y) {
+        var int x_pixel;
+        var int y_pixel;
+        var SnakeSegment current;
+        var SnakeSegment next;
+
+        let x_pixel = new_x * SEGMENT_SIZE;
+        let y_pixel = new_y * SEGMENT_SIZE;
+
+        // check for collisions at edge of screen
+        if ((x_pixel < 0) | (y_pixel < 0)) {
+            return true;
+        }
+        if ((x_pixel + SEGMENT_SIZE - 1) > MAX_X_PIXEL) {
+            return true;
+        }
+        if ((y_pixel + SEGMENT_SIZE - 1) > MAX_Y_PIXEL) {
+            return true;
+        }
+
+        // check for collisions of the snake itself
+        if (isOccupied(new_x, new_y)) {
+            return true;
+        }
+
+        // if we got this far, no collisions!
+        return false;
+    }
+
+    /**
+     * Free up memory used by grid
+     */
+    method void dispose() {
+        var int x_index;
+        var int y_index;
+        var Array y_array;
+
+        while (x_index < x) {
+            let y_array = grid[x_index];
+            do y_array.dispose();
+            let x_index = x_index + 1;
+        }
+        do grid.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

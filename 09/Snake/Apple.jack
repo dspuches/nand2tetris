@@ -1,0 +1,29 @@
+class Apple {
+    field int x;
+    field int y;
+
+    constructor Apple new(int _x, int _y) {
+        let x = _x;
+        let y = _y;
+        return this;
+    }
+
+    method void setLocation(int new_x, int new_y) {
+        let x = new_x;
+        let y = new_y;
+        return;
+    }
+
+    method void draw() {
+        return;
+    }
+
+    method void erase() {
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

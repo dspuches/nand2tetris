@@ -3,7 +3,6 @@ class SnakeGame {
 
     constructor SnakeGame new() {
         let snake = Snake.new(10, 10);
-        do Snake.init();
         return this;
     }
 
