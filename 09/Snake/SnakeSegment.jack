@@ -1,0 +1,48 @@
+class SnakeSegment {
+    field int x;
+    field int y;
+    field SnakeSegment next;
+    field SnakeSegment prev;
+
+    constructor SnakeSegment new(int _x, int _y) {
+        let x = _x;
+        let y = _y;
+        return this;
+    }
+
+    method void setNext(SnakeSegment _next) {
+        let next = _next;
+        return;
+    }
+
+    method void setPrev(SnakeSegment _prev) {
+        let prev = _prev;
+        return;
+    }
+
+    method int x() {
+        return x;
+    }
+
+    method int y() {
+        return y;
+    }
+
+    method void setX(int _x) {
+        let x = _x;
+        return;
+    }
+
+    method void setY(int _y) {
+        let y = _y;
+        return;
+    }
+
+    /** 
+    * Free up memory
+    */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}
