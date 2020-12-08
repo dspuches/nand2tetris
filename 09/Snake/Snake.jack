@@ -224,7 +224,7 @@ class Snake {
     }
 
     /**
-     * Erase the current snake
+     * Erase the specified segment from the screen
      */
     method void erase(SnakeSegment segment) {
         var int x_pixel;
@@ -242,7 +242,15 @@ class Snake {
     * Free up memory
     */
     method void dispose() {
-        //TODO deallocate all SnakeSegments
+        var SnakeSegment current;
+        var SnakeSegment next;
+
+        let current = head;
+        while (~(current = null)) {
+            let next = current.getNext();
+            do current.dispose();
+            let current = next;
+        }
         do Memory.deAlloc(this);
         return;
     }

@@ -33,9 +33,8 @@ class SnakeGame {
             do Sys.wait(125);  // delays the next movement
 
         }
-
-        do Output.printString("END");
         
+        do dispose();
         return;
     }
 

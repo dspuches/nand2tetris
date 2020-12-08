@@ -20,6 +20,14 @@ class SnakeSegment {
         return;
     }
 
+    method SnakeSegment getNext() {
+        return next;
+    }
+
+    method SnakeSegment getPrev() {
+        return prev;
+    }
+
     method int x() {
         return x;
     }
