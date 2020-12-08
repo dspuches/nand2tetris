@@ -1,5 +1,7 @@
 class SnakeGrid {
-    field Array grid;       // will be Array[x][y] elements
+    field Array grid;           // will be Array[x][y] elements
+    field int free_segments;    // track the amount of free segments, used for finding new
+                                // apple spawn point
     // field Apple apple;
 
     // static variables
@@ -9,6 +11,7 @@ class SnakeGrid {
     static int SCREEN_HEIGHT;   // screen height in pixels
     static int COLUMNS;
     static int ROWS;
+    static int NUM_SEGMENTS;
     static int MAX_X_PIXEL;     // largest x pixel index (constant)
     static int MAX_Y_PIXEL;     // largest y pixel index (constant)
 
@@ -40,6 +43,8 @@ class SnakeGrid {
             let x_index = x_index + 1;
         }
 
+        let free_segments = NUM_SEGMENTS;
+
         return this;
     }
 
@@ -55,30 +60,33 @@ class SnakeGrid {
         let MAX_Y_PIXEL = SCREEN_HEIGHT - 1;
         let COLUMNS = SCREEN_WIDTH / SEGMENT_SIZE;
         let ROWS = SCREEN_HEIGHT / SEGMENT_SIZE;
+        let NUM_SEGMENTS = ROWS * COLS;
         return;
     }
 
     /**
-     * Mark a grid location as occupied (true)
+     * Mark a grid location as occupied (true) and draw the segment to the screen
      */
     method void setOccupied(int x, int y) {
         var Array y_array;
 
         let y_array = grid[x];
         let y_array[y] = true;
+        let free_segments = free_segments - 1;
 
         do drawSegment(x, y);
         return;
     }
 
     /**
-     * Mark a grid location as free (false)
+     * Mark a grid location as free (false) and erase the segment from the screen
      */
     method void setFree(int x, int y) {
         var Array y_array;
 
         let y_array = grid[x];
         let y_array[y] = false;
+        let free_segments = free_segments + 1;
 
         do eraseSegment(x, y);
         return;
