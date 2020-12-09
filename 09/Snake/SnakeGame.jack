@@ -8,6 +8,7 @@ class SnakeGame {
     method void run() {
         var boolean running;
         var char key;
+        var int seed;
 
         let running = true;
         let key = 0;
@@ -16,18 +17,27 @@ class SnakeGame {
         do Output.println();
         do Output.printString("Eat apples, grow, eat more apples.");
         do Output.println();
+        do Output.printString("Make sure you dont bite your body or go out of bounds!");
+        do Output.println();
         do Output.println();
         do Output.printString("Press any key to start.");
 
         // do nothing until a key is pressed
+        // also generate a seed here to pass to random # generator so 
+        // apples dont spawn in same place every time.
+        let seed = 0;
         while (key = 0) {
             let key = Keyboard.keyPressed();
+            let seed = seed + 1;
+            if (seed = 32766) {
+                let seed = 0;
+            }
         }
 
         // clear screen
         do Screen.clearScreen();
 
-        let snake = Snake.new(10, 10, 2, 12345);
+        let snake = Snake.new(10, 10, 2, seed);
 
         while (running) {
             // move the snake
