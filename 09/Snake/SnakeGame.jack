@@ -10,6 +10,7 @@ class SnakeGame {
         var boolean running;
         var char key;
         var int seed;
+        var int index;
 
         let reset = true;
         while (reset) {
@@ -28,7 +29,7 @@ class SnakeGame {
             do Output.println();
             do Output.println();
             do Output.printString("Press any key to start.");
-            do Sys.wait(1000);  // delays so latent key presses dont start game
+            do Sys.wait(500);  // delays so latent key presses dont start game
 
             // do nothing until a key is pressed
             // also generate a seed here to pass to random # generator so 
@@ -61,7 +62,18 @@ class SnakeGame {
 
             }
 
+            let index = 0;
+            while (index < 5) {
+                do Screen.clearScreen();
+                do Sys.wait(250);
+                do Screen.setColor(true);
+                do Screen.drawRectangle(0, 0, 511, 255);
+                do Sys.wait(250); 
+                let index = index + 1;
+            }
             do Screen.clearScreen();
+            
+
 
             // end game
             do Output.moveCursor(0, 0);
@@ -86,8 +98,6 @@ class SnakeGame {
                 let reset = false;
             }
         }
-
-        do dispose();
         return;
     }
 

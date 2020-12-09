@@ -147,8 +147,6 @@ class SnakeGrid {
     method boolean collision(int new_x, int new_y) {
         var int x_pixel;
         var int y_pixel;
-        var SnakeSegment current;
-        var SnakeSegment next;
 
         let x_pixel = new_x * SEGMENT_SIZE;
         let y_pixel = new_y * SEGMENT_SIZE;

@@ -19,6 +19,9 @@ class Snake {
 
         let grid = SnakeGrid.new(seed);
         
+        let head = null;
+        let tail = null;
+
         do addSegment(x, y);
         let index = 1;
         while (index < num_segments) {

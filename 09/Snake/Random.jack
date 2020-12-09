@@ -1,5 +1,4 @@
 class Random {
-    field int something;
     field int seed;
 
     constructor Random new(int _seed) {

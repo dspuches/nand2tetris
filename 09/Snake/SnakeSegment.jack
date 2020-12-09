@@ -7,6 +7,8 @@ class SnakeSegment {
     constructor SnakeSegment new(int _x, int _y) {
         let x = _x;
         let y = _y;
+        let next = null;
+        let prev = null;
         return this;
     }
 
