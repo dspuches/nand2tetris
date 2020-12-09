@@ -2,7 +2,6 @@ class SnakeGame {
     field Snake snake;
 
     constructor SnakeGame new() {
-        let snake = Snake.new(10, 10, 2, 12345);
         return this;
     }
 
@@ -13,10 +12,22 @@ class SnakeGame {
         let running = true;
         let key = 0;
 
+        do Output.printString("Welcome to SNAKE.");
+        do Output.println();
+        do Output.printString("Eat apples, grow, eat more apples.");
+        do Output.println();
+        do Output.println();
+        do Output.printString("Press any key to start.");
+
         // do nothing until a key is pressed
         while (key = 0) {
             let key = Keyboard.keyPressed();
         }
+
+        // clear screen
+        do Screen.clearScreen();
+
+        let snake = Snake.new(10, 10, 2, 12345);
 
         while (running) {
             // move the snake
@@ -31,6 +42,16 @@ class SnakeGame {
             do Sys.wait(100);  // delays the next movement
 
         }
+
+        do Screen.clearScreen();
+
+        // end game
+        do Output.moveCursor(0, 0);
+        do Output.printString("Game Over! You ate ");
+        do Output.printInt(snake.applesEaten());
+        do Output.printString(" apples!");
+
+        do snake.dispose();
         
         do dispose();
         return;
@@ -42,7 +63,7 @@ class SnakeGame {
     }
 
     method void dispose() {
-        do snake.dispose();
+        //do snake.dispose();
         do Memory.deAlloc(this);
         return;
     }

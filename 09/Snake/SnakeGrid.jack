@@ -2,8 +2,8 @@ class SnakeGrid {
     field Array grid;           // will be Array[x][y] elements
     field int free_segments;    // track the amount of free segments, used for finding new
                                 // apple spawn point
-    field Random rand;
-    field Apple apple;
+    field Random rand;          // generate not so random integers for apple placement
+    field Apple apple;          // store the apple location
 
     // static variables
     static int SEGMENT_SIZE;    // SEGMENT_SIZE of rectangle, also figure exact pixel by

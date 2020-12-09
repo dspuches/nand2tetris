@@ -2,6 +2,7 @@ class Snake {
     field SnakeSegment head;    // the snake body is a doubly linked list, head of snake
     field SnakeSegment tail;    // tail of snake
     field SnakeGrid grid;       // tracks what squares in the game grid are occupied
+    field int apples_eaten;
 
     static int direction;       // 1 - up
                                 // 2 - down
@@ -25,6 +26,8 @@ class Snake {
             let index = index + 1;
         }
 
+        let apples_eaten = 0;
+
         do grid.spawnApple();
         return this;
     }
@@ -35,6 +38,10 @@ class Snake {
     function void init() {
         let direction = 4;
         return;
+    }
+
+    method int applesEaten() {
+        return apples_eaten;
     }
 
     /**
@@ -167,6 +174,7 @@ class Snake {
             if (grid.isApple(new_x, head.y())) {
                 // eat apple
                 do grid.eatApple();
+                let apples_eaten = apples_eaten + 1;
                 // add new snake segment at apple
                 do addSegment(new_x, head.y());
                 // spawn new apple
@@ -195,6 +203,7 @@ class Snake {
             if (grid.isApple(new_x, head.y())) {
                 // eat apple
                 do grid.eatApple();
+                let apples_eaten = apples_eaten + 1;
                 // add new snake segment at apple
                 do addSegment(new_x, head.y());
                 // spawn new apple
@@ -223,6 +232,7 @@ class Snake {
             if (grid.isApple(head.x(), new_y)) {
                 // eat apple
                 do grid.eatApple();
+                let apples_eaten = apples_eaten + 1;
                 // add new snake segment at apple
                 do addSegment(head.x(), new_y);
                 // spawn new apple
@@ -250,6 +260,7 @@ class Snake {
             if (grid.isApple(head.x(), new_y)) {
                 // eat apple
                 do grid.eatApple();
+                let apples_eaten = apples_eaten + 1;
                 // add new snake segment at apple
                 do addSegment(head.x(), new_y);
                 // spawn new apple
