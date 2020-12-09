@@ -1,9 +1,12 @@
 class SnakeSegment {
-    field int x;
-    field int y;
-    field SnakeSegment next;
-    field SnakeSegment prev;
+    field int x;                // x grid location of this segment
+    field int y;                // y grid location of this segment
+    field SnakeSegment next;    // next segment
+    field SnakeSegment prev;    // prev segment
 
+    /**
+     * Build a new segment, initialize next and prev to null
+     */
     constructor SnakeSegment new(int _x, int _y) {
         let x = _x;
         let y = _y;
@@ -12,37 +15,61 @@ class SnakeSegment {
         return this;
     }
 
+    /**
+     * Set next segment
+     */
     method void setNext(SnakeSegment _next) {
         let next = _next;
         return;
     }
 
+    /**
+     * Set previous segment
+     */
     method void setPrev(SnakeSegment _prev) {
         let prev = _prev;
         return;
     }
 
+    /**
+     * Return next segment
+     */
     method SnakeSegment getNext() {
         return next;
     }
 
+    /**
+     * Return previous segment
+     */
     method SnakeSegment getPrev() {
         return prev;
     }
 
+    /**
+     * Return x grid location
+     */
     method int x() {
         return x;
     }
 
+    /**
+     * Return y grid location
+     */
     method int y() {
         return y;
     }
 
+    /**
+     * Set x grid location
+     */
     method void setX(int _x) {
         let x = _x;
         return;
     }
 
+    /**
+     * Set y grid location
+     */
     method void setY(int _y) {
         let y = _y;
         return;

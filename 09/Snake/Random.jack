@@ -1,11 +1,17 @@
 class Random {
-    field int seed;
+    field int seed;                     // seed the not so random # generator
 
+    /**
+     * Build a new not so random # generator
+     */
     constructor Random new(int _seed) {
         let seed = _seed;
         return this;
     }
 
+    /**
+     * Modulo function
+     */
     function int modulo(int dividend, int divisor) {
         var int quotient;
 
@@ -13,6 +19,9 @@ class Random {
         return dividend - (quotient * divisor);
     }
 
+    /**
+     * Generate a not so random #
+     */
     method int rand(int max) {
         let seed = seed + 20251;
         if (seed < 0) {
@@ -22,6 +31,9 @@ class Random {
         return seed;
     }
 
+    /**
+     * Free up memory
+     */
     method void dispose() {
         do Memory.deAlloc(this);
         return;

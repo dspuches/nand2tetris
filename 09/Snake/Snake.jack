@@ -2,26 +2,26 @@ class Snake {
     field SnakeSegment head;    // the snake body is a doubly linked list, head of snake
     field SnakeSegment tail;    // tail of snake
     field SnakeGrid grid;       // tracks what squares in the game grid are occupied
-    field int apples_eaten;
-
+    field int apples_eaten;     // track the # of apples eaten
     static int direction;       // 1 - up
                                 // 2 - down
                                 // 3 - left
                                 // 4 - right
     
-
     /** 
-     * Build a new Snake at x, y, with num_segments additional segments
+     * Build a new Snake at x, y, with num_segments segments.
+     * Seed is used to randomly generate location of apples
      */
     constructor Snake new(int x, int y, int num_segments, int seed) {
         var int index;
-        do Snake.init();
+        do Snake.init();                    // setup static vars
 
-        let grid = SnakeGrid.new(seed);
+        let grid = SnakeGrid.new(seed);     // grid tracks location of all game objects
         
-        let head = null;
+        let head = null;                    // initially, snake is empty
         let tail = null;
 
+        // add snake segments
         do addSegment(x, y);
         let index = 1;
         while (index < num_segments) {
@@ -43,6 +43,9 @@ class Snake {
         return;
     }
 
+    /**
+     * Return number of apples the snake has eaten
+     */
     method int applesEaten() {
         return apples_eaten;
     }

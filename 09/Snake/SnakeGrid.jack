@@ -10,9 +10,9 @@ class SnakeGrid {
                                 // multiplying x or y by SEGMENT_SIZE (constant)
     static int SCREEN_WIDTH;    // screen width in pixels
     static int SCREEN_HEIGHT;   // screen height in pixels
-    static int COLUMNS;
-    static int ROWS;
-    static int NUM_SEGMENTS;
+    static int COLUMNS;         // # of grid columns
+    static int ROWS;            // # of grid rows
+    static int NUM_SEGMENTS;    // ROWS * COLUMNS
     static int MAX_X_PIXEL;     // largest x pixel index (constant)
     static int MAX_Y_PIXEL;     // largest y pixel index (constant)
     
@@ -48,7 +48,6 @@ class SnakeGrid {
         }
 
         let free_segments = NUM_SEGMENTS;
-
         let apple = Apple.new();
 
         return this;
@@ -219,6 +218,9 @@ class SnakeGrid {
         return true;
     }
 
+    /**
+     * Return true if the grid location is the apple
+     */
     method boolean isApple(int x, int y) {
         if ((x = apple.x()) & (y = apple.y())) {
             return true;
@@ -227,6 +229,9 @@ class SnakeGrid {
         }
     }
 
+    /**
+     * Removes the apple from the grid
+     */
     method void eatApple() {
         do setFree(apple.x(), apple.y());
         return;

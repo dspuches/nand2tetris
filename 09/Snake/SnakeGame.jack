@@ -1,10 +1,16 @@
 class SnakeGame {
-    field Snake snake;
+    field Snake snake;          // represents the snake. doubly linked list
 
+    /**
+     * Create a new snake game
+     */
     constructor SnakeGame new() {
         return this;
     }
 
+    /**
+     * Main game loop.
+     */
     method void run() {
         var boolean reset;
         var boolean running;
@@ -12,11 +18,13 @@ class SnakeGame {
         var int seed;
         var int index;
 
+        // keep running if reset is true
         let reset = true;
         while (reset) {
             let running = true;
             let key = 0;
 
+            // print title screen and instructions
             do Screen.clearScreen();
             do Output.moveCursor(0, 0);
             do Output.printString("Welcome to SNAKE.");
@@ -46,10 +54,11 @@ class SnakeGame {
             // clear screen
             do Screen.clearScreen();
 
+            // create a snake on the screen at 10, 10 with 2 segments
             let snake = Snake.new(10, 10, 2, seed);
 
             while (running) {
-                // move the snake
+                // try and move the snake
                 let key = Keyboard.keyPressed();
                 if (key = 132) { do snake.setDirection(4); }       // right arrow
                 if (key = 130) { do snake.setDirection(3); }       // left arrow
@@ -59,9 +68,9 @@ class SnakeGame {
                     let running = false;
                 }
                 do Sys.wait(100);  // delays the next movement
-
             }
 
+            // game over, flash the screen
             let index = 0;
             while (index < 5) {
                 do Screen.clearScreen();
@@ -72,10 +81,8 @@ class SnakeGame {
                 let index = index + 1;
             }
             do Screen.clearScreen();
-            
 
-
-            // end game
+            // end game. print results
             do Output.moveCursor(0, 0);
             do Output.printString("Game Over! You ate ");
             do Output.printInt(snake.applesEaten());
@@ -101,11 +108,9 @@ class SnakeGame {
         return;
     }
 
-    method void updateDirection(int new_direction) {
-        do snake.setDirection(new_direction);
-        return;
-    }
-
+    /**
+     * Free up any allocated memory
+     */
     method void dispose() {
         do Memory.deAlloc(this);
         return;

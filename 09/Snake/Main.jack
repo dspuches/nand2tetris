@@ -1,4 +1,7 @@
 class Main {
+    /**
+     * Main function. Creates game object and runs it.
+     */
     function void main() {
         var SnakeGame game;
         let game = SnakeGame.new();
