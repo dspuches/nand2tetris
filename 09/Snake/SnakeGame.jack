@@ -6,63 +6,87 @@ class SnakeGame {
     }
 
     method void run() {
+        var boolean reset;
         var boolean running;
         var char key;
         var int seed;
 
-        let running = true;
-        let key = 0;
+        let reset = true;
+        while (reset) {
+            let running = true;
+            let key = 0;
 
-        do Output.printString("Welcome to SNAKE.");
-        do Output.println();
-        do Output.printString("Eat apples, grow, eat more apples.");
-        do Output.println();
-        do Output.printString("Make sure you dont bite your body or go out of bounds!");
-        do Output.println();
-        do Output.println();
-        do Output.printString("Press any key to start.");
+            do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
+            do Output.printString("Welcome to SNAKE.");
+            do Output.println();
+            do Output.printString("Move the snake with your arrow keys.");
+            do Output.println();
+            do Output.printString("Eat apples, grow, eat more apples.");
+            do Output.println();
+            do Output.printString("Make sure you dont bite your body or go out of bounds!");
+            do Output.println();
+            do Output.println();
+            do Output.printString("Press any key to start.");
+            do Sys.wait(1000);  // delays so latent key presses dont start game
 
-        // do nothing until a key is pressed
-        // also generate a seed here to pass to random # generator so 
-        // apples dont spawn in same place every time.
-        let seed = 0;
-        while (key = 0) {
-            let key = Keyboard.keyPressed();
-            let seed = seed + 1;
-            if (seed = 32766) {
-                let seed = 0;
+            // do nothing until a key is pressed
+            // also generate a seed here to pass to random # generator so 
+            // apples dont spawn in same place every time.
+            let seed = 0;
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+                let seed = seed + 1;
+                if (seed = 32766) {
+                    let seed = 0;
+                }
+            }
+
+            // clear screen
+            do Screen.clearScreen();
+
+            let snake = Snake.new(10, 10, 2, seed);
+
+            while (running) {
+                // move the snake
+                let key = Keyboard.keyPressed();
+                if (key = 132) { do snake.setDirection(4); }       // right arrow
+                if (key = 130) { do snake.setDirection(3); }       // left arrow
+                if (key = 133) { do snake.setDirection(2); }       // down arrow
+                if (key = 131) { do snake.setDirection(1); }       // up arrow
+                if (~snake.move()) {
+                    let running = false;
+                }
+                do Sys.wait(100);  // delays the next movement
+
+            }
+
+            do Screen.clearScreen();
+
+            // end game
+            do Output.moveCursor(0, 0);
+            do Output.printString("Game Over! You ate ");
+            do Output.printInt(snake.applesEaten());
+            do Output.printString(" apples!");
+
+            do snake.dispose();
+
+            do Output.println();
+            do Output.println();
+            do Output.printString("Would you like to play again?");
+            do Output.println();
+            do Output.printString("Press any key to start over or q to quit...");
+
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+            }
+
+            // user pressed q, so quit.
+            if (key = 81) {
+                let reset = false;
             }
         }
 
-        // clear screen
-        do Screen.clearScreen();
-
-        let snake = Snake.new(10, 10, 2, seed);
-
-        while (running) {
-            // move the snake
-            let key = Keyboard.keyPressed();
-            if (key = 132) { do snake.setDirection(4); }       // right arrow
-            if (key = 130) { do snake.setDirection(3); }       // left arrow
-            if (key = 133) { do snake.setDirection(2); }       // down arrow
-            if (key = 131) { do snake.setDirection(1); }       // up arrow
-            if (~snake.move()) {
-                let running = false;
-            }
-            do Sys.wait(100);  // delays the next movement
-
-        }
-
-        do Screen.clearScreen();
-
-        // end game
-        do Output.moveCursor(0, 0);
-        do Output.printString("Game Over! You ate ");
-        do Output.printInt(snake.applesEaten());
-        do Output.printString(" apples!");
-
-        do snake.dispose();
-        
         do dispose();
         return;
     }
@@ -73,7 +97,6 @@ class SnakeGame {
     }
 
     method void dispose() {
-        //do snake.dispose();
         do Memory.deAlloc(this);
         return;
     }
