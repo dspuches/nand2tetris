@@ -1,0 +1,25 @@
+class Random {
+    field int something;
+    field int seed;
+
+    constructor Random new(int _seed) {
+        let seed = _seed;
+        return this;
+    }
+
+    function int modulo(int dividend, int divisor) {
+        var int quotient;
+
+        let quotient = dividend / divisor;
+        return dividend - (quotient * divisor);
+    }
+
+    method int rand(int max) {
+        let seed = seed + 20251;
+        if (seed < 0) {
+            let seed = seed - 32767 - 1;
+        }
+        let seed = Random.modulo(seed, max);
+        return seed;
+    }
+}

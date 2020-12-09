@@ -10,29 +10,20 @@ class Snake {
     
 
     /** 
-     * Build a new Snake at x, y
+     * Build a new Snake at x, y, with num_segments additional segments
      */
-    constructor Snake new(int x, int y) {
+    constructor Snake new(int x, int y, int num_segments, int seed) {
+        var int index;
         do Snake.init();
 
-        let grid = SnakeGrid.new();
+        let grid = SnakeGrid.new(seed);
         
         do addSegment(x, y);
-        do addSegment(x + 1, y);
-        do addSegment(x + 2, y);
-        do addSegment(x + 3, y);
-        do addSegment(x + 4, y);
-        do addSegment(x + 5, y);
-        do addSegment(x + 6, y);
-        do addSegment(x + 7, y);
-        do addSegment(x + 8, y);
-        do addSegment(x + 9, y);
-        do addSegment(x + 10, y);
-        do addSegment(x + 11, y);
-        do addSegment(x + 12, y);
-        do addSegment(x + 13, y);
-        do addSegment(x + 14, y);
-        do addSegment(x + 15, y);
+        let index = 1;
+        while (index < num_segments) {
+            do addSegment(x + index, y);
+            let index = index + 1;
+        }
 
         //grid.spawnApple();
         return this;

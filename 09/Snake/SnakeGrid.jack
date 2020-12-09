@@ -2,6 +2,7 @@ class SnakeGrid {
     field Array grid;           // will be Array[x][y] elements
     field int free_segments;    // track the amount of free segments, used for finding new
                                 // apple spawn point
+    field Random rand;
     // field Apple apple;
 
     // static variables
@@ -14,17 +15,20 @@ class SnakeGrid {
     static int NUM_SEGMENTS;
     static int MAX_X_PIXEL;     // largest x pixel index (constant)
     static int MAX_Y_PIXEL;     // largest y pixel index (constant)
+    
 
     /**
      * Construct a new SnakeGrid. Mark all grid locations as free initially (false)
      */
-    constructor SnakeGrid new() {
+    constructor SnakeGrid new(int seed) {
         var int x_index;
         var int y_index;
         var Array y_array;
 
         // setup statics
         do SnakeGrid.init();
+
+        let rand = Random.new(seed);
 
         // set up fields
         let grid = Array.new(COLUMNS);
@@ -60,7 +64,7 @@ class SnakeGrid {
         let MAX_Y_PIXEL = SCREEN_HEIGHT - 1;
         let COLUMNS = SCREEN_WIDTH / SEGMENT_SIZE;
         let ROWS = SCREEN_HEIGHT / SEGMENT_SIZE;
-        let NUM_SEGMENTS = ROWS * COLS;
+        let NUM_SEGMENTS = ROWS * COLUMNS;
         return;
     }
 
@@ -165,6 +169,20 @@ class SnakeGrid {
 
         // if we got this far, no collisions!
         return false;
+    }
+
+    /**
+     * Find an unoccupied segment and spawn the apple there
+     * Returns true if the apple was successfully spawned.
+     * Returns false if there were no open segments (end game)
+     */
+    method boolean spawnApple() {
+        if (free_segments = 0) {
+            return false;
+        }
+
+        return true;
+
     }
 
     /**
