@@ -22,4 +22,9 @@ class Random {
         let seed = Random.modulo(seed, max);
         return seed;
     }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
 }

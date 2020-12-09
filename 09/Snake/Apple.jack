@@ -2,9 +2,7 @@ class Apple {
     field int x;
     field int y;
 
-    constructor Apple new(int _x, int _y) {
-        let x = _x;
-        let y = _y;
+    constructor Apple new() {
         return this;
     }
 

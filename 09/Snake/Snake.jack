@@ -25,7 +25,7 @@ class Snake {
             let index = index + 1;
         }
 
-        //grid.spawnApple();
+        do grid.spawnApple();
         return this;
     }
 
@@ -159,10 +159,21 @@ class Snake {
 
         let new_x = head.x() + 1;
         if (~grid.collision(new_x, head.y())) {
+            
             do deleteTailSegment();
             do addSegment(new_x, head.y());
             return true;
         } else {
+            if (grid.isApple(new_x, head.y())) {
+                // eat apple
+                do grid.eatApple();
+                // add new snake segment at apple
+                do addSegment(new_x, head.y());
+                // spawn new apple
+                if (grid.spawnApple()) {
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -176,10 +187,21 @@ class Snake {
 
         let new_x = head.x() - 1;
         if (~grid.collision(new_x, head.y())) {
+            
             do deleteTailSegment();
             do addSegment(new_x, head.y());
             return true;
         } else {
+            if (grid.isApple(new_x, head.y())) {
+                // eat apple
+                do grid.eatApple();
+                // add new snake segment at apple
+                do addSegment(new_x, head.y());
+                // spawn new apple
+                if (grid.spawnApple()) {
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -193,10 +215,21 @@ class Snake {
 
         let new_y = head.y() - 1;
         if (~grid.collision(head.x(), new_y)) {
+            
             do deleteTailSegment();
             do addSegment(head.x(), new_y);
             return true;
         } else {
+            if (grid.isApple(head.x(), new_y)) {
+                // eat apple
+                do grid.eatApple();
+                // add new snake segment at apple
+                do addSegment(head.x(), new_y);
+                // spawn new apple
+                if (grid.spawnApple()) {
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -214,6 +247,16 @@ class Snake {
             do addSegment(head.x(), new_y);
             return true;
         } else {
+            if (grid.isApple(head.x(), new_y)) {
+                // eat apple
+                do grid.eatApple();
+                // add new snake segment at apple
+                do addSegment(head.x(), new_y);
+                // spawn new apple
+                if (grid.spawnApple()) {
+                    return true;
+                }
+            }
             return false;
         }
     }

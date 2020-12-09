@@ -2,7 +2,7 @@ class SnakeGame {
     field Snake snake;
 
     constructor SnakeGame new() {
-        let snake = Snake.new(10, 10, 15, 12345);
+        let snake = Snake.new(10, 10, 2, 12345);
         return this;
     }
 
@@ -28,7 +28,7 @@ class SnakeGame {
             if (~snake.move()) {
                 let running = false;
             }
-            do Sys.wait(125);  // delays the next movement
+            do Sys.wait(100);  // delays the next movement
 
         }
         

@@ -3,7 +3,7 @@ class SnakeGrid {
     field int free_segments;    // track the amount of free segments, used for finding new
                                 // apple spawn point
     field Random rand;
-    // field Apple apple;
+    field Apple apple;
 
     // static variables
     static int SEGMENT_SIZE;    // SEGMENT_SIZE of rectangle, also figure exact pixel by
@@ -48,6 +48,8 @@ class SnakeGrid {
         }
 
         let free_segments = NUM_SEGMENTS;
+
+        let apple = Apple.new();
 
         return this;
     }
@@ -177,12 +179,59 @@ class SnakeGrid {
      * Returns false if there were no open segments (end game)
      */
     method boolean spawnApple() {
+        var int x_index;
+        var int y_index;
+        var Array y_array;
+        var int free_segment_count;
+        var int free_segment_offset;
+
         if (free_segments = 0) {
             return false;
         }
 
-        return true;
+        // index will be between 1 and free_segments (inclusive)
+        let free_segment_offset = rand.rand(free_segments);
+        // tracks the # of times we have encountered a free segment
+        let free_segment_count = 0;
 
+        let x_index = 0;
+        while (x_index < COLUMNS) {
+            let y_array = grid[x_index];
+            let y_index = 0;
+            while (y_index < ROWS) {
+                if (y_array[y_index] = false) {
+                    let free_segment_count = free_segment_count + 1;
+                    if (free_segment_count = free_segment_offset) {
+                        // create apple here
+                        do apple.setLocation(x_index, y_index);
+
+                        // draw apple
+                        do setOccupied(x_index, y_index);
+
+                        // break out of loop
+                        let y_index = ROWS;
+                        let x_index = COLUMNS;
+                    }
+                }
+                let y_index = y_index + 1;
+            }
+            let x_index = x_index + 1;
+        }
+        
+        return true;
+    }
+
+    method boolean isApple(int x, int y) {
+        if ((x = apple.x()) & (y = apple.y())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    method void eatApple() {
+        do setFree(apple.x(), apple.y());
+        return;
     }
 
     /**
@@ -199,6 +248,8 @@ class SnakeGrid {
             let x_index = x_index + 1;
         }
         do grid.dispose();
+        do apple.dispose();
+        do rand.dispose();
         do Memory.deAlloc(this);
         return;
     }
