@@ -34,9 +34,9 @@ class JackTokenizer():
         self._line = None                           # read a line
         self._line_count = 0                        # start off the counter at 1
         self._line_length = 0                       # store length of current line
-        self._start = 0                             # the index of the start of the token in current line
+        self._start = 0                             # the index of the start of the lexeme in current line
         self._curr = 0                              # the current index in the current line
-        self._next_token = self._get_next_token()   # attempt to get the next token
+        self._next_lexeme = self._get_next_lexeme() # attempt to get the next lexeme
 
     def _read_next_line(self):
         self._line = self._fd.readline()
@@ -61,9 +61,11 @@ class JackTokenizer():
         else:
             return ""
     
+    # process a // type comment
     def _handle_singleline_comment(self):
         self._read_next_line()
     
+    # process a /* */ type comment
     def _handle_multiline_comment(self):
         scanning = True
         self._bump()            # start/curr point to * of /*
@@ -89,12 +91,9 @@ class JackTokenizer():
             else:
                 self._curr += 1
 
-
-    # this method will return the next token in the stream
-    # start and curr are two indices within a line
-    # curr gets increased until it finds a space, symbol, or end of line
-    def _get_next_token(self):
-        token = None
+    # this method will return the next lexeme in the stream
+    def _get_next_lexeme(self):
+        lexeme = None
         scanning = True
 
         if (self._line == None):
@@ -102,17 +101,17 @@ class JackTokenizer():
 
         # EOF
         if (self._line == ''):
-            return token
+            return lexeme
 
         while (scanning):
-            # EOF encountered while processing tokens
+            # EOF encountered while processing lexemes
             if (self._line == ''):
                 break
 
             if (self._curr == self._line_length or self._line[self._curr] == '\n'):
-                # end of line. we have a token if start != curr
+                # end of line. we have a lexeme if start != curr
                 if (self._curr != self._start):
-                    token = self._line[self._start:self._curr] 
+                    lexeme = self._line[self._start:self._curr] 
                     scanning = False
                 self._read_next_line()
             elif (self._line[self._curr] == '"'):
@@ -125,7 +124,7 @@ class JackTokenizer():
                         raise TokenizerError("Unterminated string constant {}".format(self._line[self._start:self._curr]))
                     elif (self._line[self._curr] == '"'):
                         # found closing quote
-                        token = self._line[self._start:self._curr+1] 
+                        lexeme = self._line[self._start:self._curr+1] 
                         scanning_string = False
                         scanning = False
                         self._bump()
@@ -136,7 +135,7 @@ class JackTokenizer():
             elif (self._line[self._curr] in self.SYMBOLS):
                 # found a symbol
                 if (self._start == self._curr):
-                    # if start == curr, the symbol is the token...unless its a comment
+                    # if start == curr, the symbol is the lexeme...unless its a comment
                     if (self._line[self._curr] == "/"):
                         # check if it is a comment and skip them if it is
                         if (self._peek() == "/"):
@@ -146,38 +145,38 @@ class JackTokenizer():
                             self._handle_multiline_comment()
                             continue
                     
-                    # not a comment, so its a token
-                    token = self._line[self._curr]
+                    # not a comment, so its a lexeme
+                    lexeme = self._line[self._curr]
                     scanning = False
                     self._bump()
                 else:
-                    # otherwise, the previous text from start up to curr is the token
-                    token = self._line[self._start:self._curr]
+                    # otherwise, the previous text from start up to curr is the lexeme
+                    lexeme = self._line[self._start:self._curr]
                     scanning = False
                     self._align()
             elif (self._line[self._curr] == ' '):
-                # curr is a space, we have a token if start and curr are not the same. Otherwise, bump
+                # curr is a space, we have a lexeme if start and curr are not the same. Otherwise, bump
                 if (self._start != self._curr):
-                    token = self._line[self._start:self._curr] 
+                    lexeme = self._line[self._start:self._curr] 
                     scanning = False
                 self._bump()
             
             elif (scanning):
-                # if we got this far, no tokens have been found yet and we havent reached end of line or EOF
+                # if we got this far, no lexemes have been found yet and we havent reached end of line or EOF
                 self._curr += 1
 
-        return token
+        return lexeme
 
     def has_more_tokens(self):
-        if self._next_token is None:
+        if self._next_lexeme is None:
             return False
         else:
             return True
 
     def advance(self):
-        if self._next_token is None:
-            raise TokenizerError("Cannot call advance if there are no more tokens to process")
-        self._next_token = self._get_next_token()
+        if self._next_lexeme is None:
+            raise TokenizerError("Cannot call advance if there are no more lexemes to process")
+        self._next_lexeme = self._get_next_lexeme()
 
     def token_type(self):
         pass

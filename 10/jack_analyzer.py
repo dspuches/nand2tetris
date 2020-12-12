@@ -41,7 +41,7 @@ def main(input):
             #     jack_input = f.readlines()
             t = JackTokenizer(infile)
             while (t.has_more_tokens()):
-                print("*{}*".format(t._next_token))
+                print("*{}*".format(t._next_lexeme))
                 t.advance()
 
             
