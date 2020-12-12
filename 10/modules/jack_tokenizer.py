@@ -54,10 +54,45 @@ class JackTokenizer():
     def _align(self):
         self._start = self._curr
 
-    def _curr_char(self):
-        return self._line[self._curr_char]
+    # peek at next char (curr + 1)
+    def _peek(self):
+        if (self._curr + 1 < self._line_length):
+            return self._line[self._curr + 1]
+        else:
+            return ""
+    
+    def _handle_singleline_comment(self):
+        self._read_next_line()
+    
+    def _handle_multiline_comment(self):
+        scanning = True
+        self._bump()            # start/curr point to * of /*
+        self._bump()            # start/curr point to first char after /*
+
+        while (scanning):
+            if (self._curr == self._line_length):
+                if (self._line == ''):
+                    #EOF without finding closure. Raise exception
+                    raise TokenizerError("Reached EOF before finding closing */ to multiline comment")
+                # end of current line, move to next
+                self._read_next_line()
+                
+            elif (self._line[self._curr] == "*"):
+                # if we find a *, check if its the end of comment
+                if (self._peek() == "/"):
+                    # end of comment
+                    scanning = False
+                    self._bump()
+                    self._bump()
+                else:
+                    self._curr += 1
+            else:
+                self._curr += 1
+
 
     # this helper method will return the next token in the stream
+    # start and curr are two indices within a line
+    # curr gets increased until it finds a space, symbol, or end of line
     def _get_next_token(self):
         token = None
         scanning = True
@@ -69,33 +104,40 @@ class JackTokenizer():
             return token
 
         while (scanning):
-            # print("start:{}".format(self._start))
-            # print("curr:{}".format(self._curr))
-            # print("line:*{}*".format(self._line))
-
-            # EOF
+            # EOF encountered while processing tokens
             if (self._line == ''):
                 break
 
-            # import pdb;pdb.set_trace()
             if (self._curr == self._line_length or self._line[self._curr] == '\n'):
-                # end of line
-                # ignore blank lines
+                # end of line. we have a token if start != curr
                 if (self._curr != self._start):
                     token = self._line[self._start:self._curr] 
                     scanning = False
                 self._read_next_line()
             elif (self._line[self._curr] in self.SYMBOLS):
+                # found a symbol
                 if (self._start == self._curr):
+                    # if start == curr, the symbol is the token...unless its a comment
+                    if (self._line[self._curr] == "/"):
+                        # check if it is a comment and skip them if it is
+                        if (self._peek() == "/"):
+                            self._handle_singleline_comment()
+                            continue
+                        elif (self._peek() == "*"):
+                            self._handle_multiline_comment()
+                            continue
+                    
+                    # not a comment, so its a token
                     token = self._line[self._curr]
                     scanning = False
                     self._bump()
                 else:
+                    # otherwise, the previous text from start up to curr is the token
                     token = self._line[self._start:self._curr]
                     scanning = False
                     self._align()
             elif (self._line[self._curr] == ' '):
-                # current is a space, we have a token if start and curr are not the same. Otherwise, bump
+                # curr is a space, we have a token if start and curr are not the same. Otherwise, bump
                 if (self._start != self._curr):
                     token = self._line[self._start:self._curr] 
                     scanning = False
@@ -103,49 +145,9 @@ class JackTokenizer():
             
             elif (scanning):
                 # if we got this far, no tokens have been found yet and we havent reached end of line or EOF
-                # if we are still scanning, keep increasing _curr
                 self._curr += 1
 
-        #self._read_next_line()
         return token
-        
-        # while (self._curr <= self._line_length):
-            
-        #     # start is at the end of the line or no lines have been read yet
-        #     if (self._start == self._line_length or self._line == None):
-        #         if (self._read_next_line() == False):
-        #             return None
-
-        #     # we are at the last character of this line
-        #     if (self._curr == self._line_length):
-        #         extracted = self._line[self._start:self._curr]      # extract start to end of line
-        #         self._align()                                       # move start to EOL
-        #         if (extracted != ""):                               # dont return empty tokens
-        #             return extracted
-                               
-        #     # if current character is a space
-        #     if (self._line[self._curr] == ' '):
-        #         # continue on if start and curr point to the same space character
-        #         if (self._curr == self._start):
-        #             self._bump()
-        #             continue
-        #         extracted = self._line[self._start:self._curr]      # extract the token
-        #         self._bump()
-        #         if (extracted != ""):                               # dont return empty tokens
-        #             return extracted
-                
-        #     # if current character is a symbol
-        #     if (self._line[self._curr] in self.SYMBOLS):
-        #         if self._start == self._curr:                       # if start and curr are the same, we want to extract the symbol itself
-        #             self._curr += 1
-
-        #         extracted = self._line[self._start:self._curr]      # extract the token
-        #         self._align()
-
-        #         if (extracted != ""):                               # dont return empty tokens
-        #             return extracted
-
-        #     self._curr += 1
 
     def has_more_tokens(self):
         if self._next_token is None:
