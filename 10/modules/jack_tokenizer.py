@@ -90,7 +90,7 @@ class JackTokenizer():
                 self._curr += 1
 
 
-    # this helper method will return the next token in the stream
+    # this method will return the next token in the stream
     # start and curr are two indices within a line
     # curr gets increased until it finds a space, symbol, or end of line
     def _get_next_token(self):
@@ -100,6 +100,7 @@ class JackTokenizer():
         if (self._line == None):
             self._read_next_line()
 
+        # EOF
         if (self._line == ''):
             return token
 
@@ -114,6 +115,24 @@ class JackTokenizer():
                     token = self._line[self._start:self._curr] 
                     scanning = False
                 self._read_next_line()
+            elif (self._line[self._curr] == '"'):
+                # string constant
+                scanning_string = True
+                self._curr += 1
+                while (scanning_string):
+                    if (self._curr == self._line_length):
+                        # end of line
+                        raise TokenizerError("Unterminated string constant {}".format(self._line[self._start:self._curr]))
+                    elif (self._line[self._curr] == '"'):
+                        # found closing quote
+                        token = self._line[self._start:self._curr+1] 
+                        scanning_string = False
+                        scanning = False
+                        self._bump()
+                    else:
+                        # keep scanning
+                        self._curr += 1
+
             elif (self._line[self._curr] in self.SYMBOLS):
                 # found a symbol
                 if (self._start == self._curr):
