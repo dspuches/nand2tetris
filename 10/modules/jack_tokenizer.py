@@ -61,8 +61,28 @@ class JackTokenizer():
     T_INT_CONSTANT = "INT_CONSTANT"
     T_STRING_CONSTANT = "STRING_CONST"
 
+    # K_CLASS = "CLASS"
+    # K_METHOD = "METHOD"
+    # K_FUNCTION = "FUNCTION"
+    # K_CONSTRUCTOR = "CONSTRUCTOR"
+    # K_INT = "INT"
+    # K_BOOLEAN = "BOOLEAN"
+    # K_CHAR = "CHAR"
+    # K_VOID = "VOID"
+    # K_VAR = "VAR"
+    # K_STATIC = "STATIC"
+    # K_FIELD = "FIELD"
+    # K_LET = "LET"
+    # K_DO = "DO"
+    # K_IF = "IF"
+    # K_ELSE = "ELSE"
+    # K_WHILE = "WHILE"
+    # K_RETURN = "RETURN"
+    # K_TRUE = "TRUE"
+    # K_FALSE = "FALSE"
+    # K_NULL = "NULL"
+    # K_THIS = "THIS"
 
-    
     def __init__(self, infile):
         self._fd = open(infile)                     # file descriptor
         self._line = None                           # read a line
@@ -274,16 +294,26 @@ class JackTokenizer():
         return t_type
 
     def keyword(self):
-        pass
+        if (self.token_type() is not self.T_KEYWORD):
+            raise TokenizerError("Token type must be {} to call the keyword() method".format(self.T_KEYWORD))
+        return self._curr_lexeme.upper()
 
     def symbol(self):
-        pass
+        if (self.token_type() is not self.T_SYMBOL):
+            raise TokenizerError("Token type must be {} to call the symbol() method".format(self.T_SYMBOL))
+        return self._curr_lexeme
     
     def identifier(self):
-        pass
+        if (self.token_type() is not self.T_IDENTIFIER):
+            raise TokenizerError("Token type must be {} to call the identifier() method".format(self.T_IDENTIFIER))
+        return self._curr_lexeme
 
     def int_val(self):
-        pass
+        if (self.token_type() is not self.T_INT_CONSTANT):
+            raise TokenizerError("Token type must be {} to call the int_val() method".format(self.T_INT_CONSTANT))
+        return self._curr_lexeme
 
     def string_val(self):
-        pass
+        if (self.token_type() is not self.T_STRING_CONSTANT):
+            raise TokenizerError("Token type must be {} to call the string_val() method".format(self.T_STRING_CONSTANT))
+        return self._curr_lexeme.strip('"')
