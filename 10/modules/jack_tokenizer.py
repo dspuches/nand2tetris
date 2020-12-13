@@ -61,6 +61,66 @@ class JackTokenizer():
         else:
             return ""
     
+    # handler called when EOL is encountered scanning a line
+    def _handle_end_of_line(self):
+        # we have a lexeme if start != curr
+        scanning = True
+        lexeme = None
+        if (self._curr != self._start):
+            lexeme = self._line[self._start:self._curr] 
+            scanning = False
+        self._read_next_line()
+        return scanning, lexeme
+    
+    # handler called when " is encountered scanning a line
+    def _handle_string(self):
+        lexeme = None
+        scanning = True
+        scanning_string = True
+        self._curr += 1
+        while (scanning_string):
+            if (self._curr == self._line_length):
+                # end of line
+                raise TokenizerError("Unterminated string constant {}".format(self._line[self._start:self._curr]))
+            elif (self._line[self._curr] == '"'):
+                # found closing quote
+                lexeme = self._line[self._start:self._curr+1] 
+                scanning_string = False
+                scanning = False
+                self._bump()
+            else:
+                # keep scanning
+                self._curr += 1
+        return scanning, lexeme
+    
+    # handler called when a symbol is encountered scanning a line
+    # note that comments start with / which is also a division symbol
+    # handler must peek ahead if the symbol is /
+    def _handle_symbol(self):
+        scanning = True
+        lexeme = None
+        if (self._start == self._curr):
+            # if start == curr, the symbol is the lexeme...unless its a comment
+            if (self._line[self._curr] == "/"):
+                # check if it is a comment and skip them if it is
+                if (self._peek() == "/"):
+                    self._handle_singleline_comment()
+                    return scanning, lexeme
+                elif (self._peek() == "*"):
+                    self._handle_multiline_comment()
+                    return scanning, lexeme
+            
+            # not a comment, so its a lexeme
+            lexeme = self._line[self._curr]
+            scanning = False
+            self._bump()
+        else:
+            # otherwise, the previous text from start up to curr is the lexeme
+            lexeme = self._line[self._start:self._curr]
+            scanning = False
+            self._align()
+        return scanning, lexeme
+
     # process a // type comment
     def _handle_singleline_comment(self):
         self._read_next_line()
@@ -91,6 +151,17 @@ class JackTokenizer():
             else:
                 self._curr += 1
 
+    # handler called when a space is encountered scanning a line
+    def _handle_space(self):
+        # we have a lexeme if start and curr are not the same. Otherwise, bump
+        scanning = True
+        lexeme = None
+        if (self._start != self._curr):
+            lexeme = self._line[self._start:self._curr] 
+            scanning = False
+        self._bump()
+        return scanning, lexeme
+
     # this method will return the next lexeme in the stream
     def _get_next_lexeme(self):
         lexeme = None
@@ -109,58 +180,13 @@ class JackTokenizer():
                 break
 
             if (self._curr == self._line_length or self._line[self._curr] == '\n'):
-                # end of line. we have a lexeme if start != curr
-                if (self._curr != self._start):
-                    lexeme = self._line[self._start:self._curr] 
-                    scanning = False
-                self._read_next_line()
+                scanning, lexeme = self._handle_end_of_line()
             elif (self._line[self._curr] == '"'):
-                # string constant
-                scanning_string = True
-                self._curr += 1
-                while (scanning_string):
-                    if (self._curr == self._line_length):
-                        # end of line
-                        raise TokenizerError("Unterminated string constant {}".format(self._line[self._start:self._curr]))
-                    elif (self._line[self._curr] == '"'):
-                        # found closing quote
-                        lexeme = self._line[self._start:self._curr+1] 
-                        scanning_string = False
-                        scanning = False
-                        self._bump()
-                    else:
-                        # keep scanning
-                        self._curr += 1
-
+                scanning, lexeme  = self._handle_string()
             elif (self._line[self._curr] in self.SYMBOLS):
-                # found a symbol
-                if (self._start == self._curr):
-                    # if start == curr, the symbol is the lexeme...unless its a comment
-                    if (self._line[self._curr] == "/"):
-                        # check if it is a comment and skip them if it is
-                        if (self._peek() == "/"):
-                            self._handle_singleline_comment()
-                            continue
-                        elif (self._peek() == "*"):
-                            self._handle_multiline_comment()
-                            continue
-                    
-                    # not a comment, so its a lexeme
-                    lexeme = self._line[self._curr]
-                    scanning = False
-                    self._bump()
-                else:
-                    # otherwise, the previous text from start up to curr is the lexeme
-                    lexeme = self._line[self._start:self._curr]
-                    scanning = False
-                    self._align()
+                scanning, lexeme = self._handle_symbol()
             elif (self._line[self._curr] == ' '):
-                # curr is a space, we have a lexeme if start and curr are not the same. Otherwise, bump
-                if (self._start != self._curr):
-                    lexeme = self._line[self._start:self._curr] 
-                    scanning = False
-                self._bump()
-            
+                scanning, lexeme = self._handle_space()
             elif (scanning):
                 # if we got this far, no lexemes have been found yet and we havent reached end of line or EOF
                 self._curr += 1
