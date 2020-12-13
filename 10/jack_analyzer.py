@@ -10,7 +10,7 @@ def main(input):
     # determine if the inputs is a directory or vmfile
     if re.search("\.jack$", input):
         # input is a single .jack file
-        infiles.append(input)
+        infiles.append(os.path.abspath(input))
         # determine output directory
         (head, tail) = os.path.split(os.path.abspath(input))
         outdir = head
@@ -21,7 +21,7 @@ def main(input):
             files = os.listdir(input)
             for f in files:
                 if re.search("\.jack$", f):
-                    infiles.append(f)
+                    infiles.append(os.path.join(outdir, f))
         except Exception as e:
             print("Error attempting to read directory: {}".format(e))
             exit(1)
@@ -35,20 +35,16 @@ def main(input):
     for infile in infiles:
         if args.tokenize:
             # only output tokenized xml output file
-            # token_outfile_name = re.sub("\.jack$", "T.xml", infile)
-            # token_outfile = os.path.join(outdir, token_outfile_name)
-            # with open(infile) as f:
-            #     jack_input = f.readlines()
-            t = JackTokenizer(infile)
-            while (t.has_more_tokens()):
-                t.advance()
-                print("{} {}".format(t._curr_lexeme, t.token_type()))
+            token_outfile_name = re.sub("\.jack$", "T.xml", infile)
+            token_outfile = os.path.join(outdir, token_outfile_name)
+            with open(token_outfile, "w") as f:
+                t = JackTokenizer(infile)
+                f.write(t.token_xml_header())
+                while (t.has_more_tokens()):
+                    t.advance()
+                    f.write(t.token_xml())
+                f.write(t.token_xml_trailer())
                 
-
-            
-            # print("input = {}".format(infile))
-            # print("outdir = {}".format(outdir))
-            # print("token_outfile = {}".format(token_outfile))
         else:
             # default is to generate output from the compilation engine
             pass

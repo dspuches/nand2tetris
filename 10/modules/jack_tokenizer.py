@@ -61,6 +61,14 @@ class JackTokenizer():
     T_INT_CONSTANT = "INT_CONSTANT"
     T_STRING_CONSTANT = "STRING_CONST"
 
+    TYPE_XML = {
+        T_KEYWORD: "keyword",
+        T_SYMBOL: "symbol",
+        T_IDENTIFIER: "identifier",
+        T_INT_CONSTANT: "integerConstant",
+        T_STRING_CONSTANT: "stringConstant",
+    }
+
     # K_CLASS = "CLASS"
     # K_METHOD = "METHOD"
     # K_FUNCTION = "FUNCTION"
@@ -241,7 +249,7 @@ class JackTokenizer():
                 scanning, lexeme  = self._handle_string()
             elif (self._line[self._curr] in self.SYMBOLS):
                 scanning, lexeme = self._handle_symbol()
-            elif (self._line[self._curr] == ' '):
+            elif (self._line[self._curr] == ' ' or self._line[self._curr] == '\t'):
                 scanning, lexeme = self._handle_space()
             elif (scanning):
                 # if we got this far, no lexemes have been found yet and we havent reached end of line or EOF
@@ -317,3 +325,20 @@ class JackTokenizer():
         if (self.token_type() is not self.T_STRING_CONSTANT):
             raise TokenizerError("Token type must be {} to call the string_val() method".format(self.T_STRING_CONSTANT))
         return self._curr_lexeme.strip('"')
+    
+    def token_xml_header(self):
+        return "<tokens>\n"
+
+    def token_xml_trailer(self):
+        return "</tokens>\n"
+
+    def token_xml(self):
+        token = self._curr_lexeme.strip('"')
+        if (self.token_type() == self.T_SYMBOL):
+            if (self._curr_lexeme == "<"):
+                token = "&lt;"
+            elif (self._curr_lexeme == ">"):
+                token = "&gt;"
+            elif (self._curr_lexeme == "&"):
+                token = "&amp;"
+        return "  <{}> {} </{}>\n".format(self.TYPE_XML[self.token_type()], token, self.TYPE_XML[self.token_type()])
