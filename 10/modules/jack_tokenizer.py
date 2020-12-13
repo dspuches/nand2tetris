@@ -1,4 +1,6 @@
+import re
 from .tokenizer_error import TokenizerError
+from .token_error import TokenError
 
 
 class JackTokenizer():
@@ -29,6 +31,38 @@ class JackTokenizer():
         "~",
     ]
     
+    KEYWORDS = [
+        "class",
+        "constructor",
+        "function",
+        "method",
+        "field",
+        "static",
+        "var",
+        "int",
+        "char",
+        "boolean",
+        "void",
+        "true",
+        "false",
+        "null",
+        "this",
+        "let",
+        "do",
+        "if",
+        "else",
+        "while",
+        "return",
+    ]
+
+    T_KEYWORD = "KEYWORD"
+    T_SYMBOL = "SYMBOL"
+    T_IDENTIFIER = "IDENTIFIER"
+    T_INT_CONSTANT = "INT_CONSTANT"
+    T_STRING_CONSTANT = "STRING_CONST"
+
+
+    
     def __init__(self, infile):
         self._fd = open(infile)                     # file descriptor
         self._line = None                           # read a line
@@ -37,7 +71,9 @@ class JackTokenizer():
         self._start = 0                             # the index of the start of the lexeme in current line
         self._curr = 0                              # the current index in the current line
         self._next_lexeme = self._get_next_lexeme() # attempt to get the next lexeme
+        self._curr_lexeme = None
 
+    # read a line from the stream, increase line count, reset indices
     def _read_next_line(self):
         self._line = self._fd.readline()
         self._line_count += 1
@@ -81,7 +117,7 @@ class JackTokenizer():
         while (scanning_string):
             if (self._curr == self._line_length):
                 # end of line
-                raise TokenizerError("Unterminated string constant {}".format(self._line[self._start:self._curr]))
+                raise TokenError(self._line[self._start:self._curr], "Unterminated string constant")
             elif (self._line[self._curr] == '"'):
                 # found closing quote
                 lexeme = self._line[self._start:self._curr+1] 
@@ -193,19 +229,49 @@ class JackTokenizer():
 
         return lexeme
 
+    # return true if there are more tokens to process (_next_lexeme is not None)
     def has_more_tokens(self):
         if self._next_lexeme is None:
             return False
         else:
             return True
 
+    # move to the next lexeme
     def advance(self):
         if self._next_lexeme is None:
-            raise TokenizerError("Cannot call advance if there are no more lexemes to process")
+            raise TokenizerError("Cannot call advance() if there are no more lexemes to process")
+        self._curr_lexeme = self._next_lexeme
         self._next_lexeme = self._get_next_lexeme()
 
+    # determine the type of the token
     def token_type(self):
-        pass
+        t_type = None
+        int_regex = "^[0-9]+$"
+        string_regex = '^"([^"\n])*"$'
+        id_regex = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+        
+        if (self._curr_lexeme == None):
+            raise TokenizerError("Cannot call token_type() before advance() has been called()")
+        
+        # see if we have any matches
+        if (self._curr_lexeme in self.KEYWORDS):
+            t_type = self.T_KEYWORD
+        elif (self._curr_lexeme in self.SYMBOLS):
+            t_type = self.T_SYMBOL
+        elif (re.search(int_regex, self._curr_lexeme)):
+            value = int(self._curr_lexeme)
+            if (value >= 0 and value <= 32767):
+                t_type = self.T_INT_CONSTANT
+            else:
+                raise TokenError(self._curr_lexeme, "Integers must be in the range 0..32767")
+        elif (re.search(string_regex, self._curr_lexeme)):
+            t_type = self.T_STRING_CONSTANT
+        elif (re.search(id_regex, self._curr_lexeme)):
+            t_type = self.T_IDENTIFIER
+        else:
+            raise TokenError(self._curr_lexeme, "Unable to determine token type")
+
+        return t_type
 
     def keyword(self):
         pass
