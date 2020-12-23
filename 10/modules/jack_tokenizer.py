@@ -270,7 +270,7 @@ class JackTokenizer():
     # move to the next token
     def advance(self):
         if self._next_token is None:
-            raise TokenizerError("Cannot call advance() if there are no more tokens to process")
+            raise TokenizerError("Unexpected EOF, no more tokens to process")
         self._curr_token = self._next_token
         self._next_token = self._get_next_token()
 
