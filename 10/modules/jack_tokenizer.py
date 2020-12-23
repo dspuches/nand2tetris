@@ -69,7 +69,7 @@ class JackTokenizer():
         T_STRING_CONSTANT: "stringConstant",
     }
 
-    # K_CLASS = "CLASS"
+    K_CLASS = "CLASS"
     # K_METHOD = "METHOD"
     # K_FUNCTION = "FUNCTION"
     # K_CONSTRUCTOR = "CONSTRUCTOR"
@@ -91,8 +91,8 @@ class JackTokenizer():
     # K_NULL = "NULL"
     # K_THIS = "THIS"
 
-    def __init__(self, infile):
-        self._fd = open(infile)                     # file descriptor
+    def __init__(self, in_f):
+        self._fd = in_f                             # file descriptor
         self._line = None                           # read a line
         self._line_count = 0                        # start off the counter at 1
         self._line_length = 0                       # store length of current line
@@ -256,6 +256,9 @@ class JackTokenizer():
                 self._curr += 1
 
         return lexeme
+
+    def token(self):
+        return self._curr_lexeme
 
     # return true if there are more tokens to process (_next_lexeme is not None)
     def has_more_tokens(self):
