@@ -96,10 +96,10 @@ class JackTokenizer():
         self._line = None                           # read a line
         self._line_count = 0                        # start off the counter at 1
         self._line_length = 0                       # store length of current line
-        self._start = 0                             # the index of the start of the lexeme in current line
+        self._start = 0                             # the index of the start of the token in current line
         self._curr = 0                              # the current index in the current line
-        self._next_lexeme = self._get_next_lexeme() # attempt to get the next lexeme
-        self._curr_lexeme = None
+        self._next_token = self._get_next_token() # attempt to get the next token
+        self._curr_token = None
 
     # read a line from the stream, increase line count, reset indices
     def _read_next_line(self):
@@ -127,18 +127,18 @@ class JackTokenizer():
     
     # handler called when EOL is encountered scanning a line
     def _handle_end_of_line(self):
-        # we have a lexeme if start != curr
+        # we have a token if start != curr
         scanning = True
-        lexeme = None
+        token = None
         if (self._curr != self._start):
-            lexeme = self._line[self._start:self._curr] 
+            token = self._line[self._start:self._curr] 
             scanning = False
         self._read_next_line()
-        return scanning, lexeme
+        return scanning, token
     
     # handler called when " is encountered scanning a line
     def _handle_string(self):
-        lexeme = None
+        token = None
         scanning = True
         scanning_string = True
         self._curr += 1
@@ -148,42 +148,42 @@ class JackTokenizer():
                 raise TokenError(self._line[self._start:self._curr], "Unterminated string constant")
             elif (self._line[self._curr] == '"'):
                 # found closing quote
-                lexeme = self._line[self._start:self._curr+1] 
+                token = self._line[self._start:self._curr+1] 
                 scanning_string = False
                 scanning = False
                 self._bump()
             else:
                 # keep scanning
                 self._curr += 1
-        return scanning, lexeme
+        return scanning, token
     
     # handler called when a symbol is encountered scanning a line
     # note that comments start with / which is also a division symbol
     # handler must peek ahead if the symbol is /
     def _handle_symbol(self):
         scanning = True
-        lexeme = None
+        token = None
         if (self._start == self._curr):
-            # if start == curr, the symbol is the lexeme...unless its a comment
+            # if start == curr, the symbol is the token...unless its a comment
             if (self._line[self._curr] == "/"):
                 # check if it is a comment and skip them if it is
                 if (self._peek() == "/"):
                     self._handle_singleline_comment()
-                    return scanning, lexeme
+                    return scanning, token
                 elif (self._peek() == "*"):
                     self._handle_multiline_comment()
-                    return scanning, lexeme
+                    return scanning, token
             
-            # not a comment, so its a lexeme
-            lexeme = self._line[self._curr]
+            # not a comment, so its a token
+            token = self._line[self._curr]
             scanning = False
             self._bump()
         else:
-            # otherwise, the previous text from start up to curr is the lexeme
-            lexeme = self._line[self._start:self._curr]
+            # otherwise, the previous text from start up to curr is the token
+            token = self._line[self._start:self._curr]
             scanning = False
             self._align()
-        return scanning, lexeme
+        return scanning, token
 
     # process a // type comment
     def _handle_singleline_comment(self):
@@ -217,18 +217,18 @@ class JackTokenizer():
 
     # handler called when a space is encountered scanning a line
     def _handle_space(self):
-        # we have a lexeme if start and curr are not the same. Otherwise, bump
+        # we have a token if start and curr are not the same. Otherwise, bump
         scanning = True
-        lexeme = None
+        token = None
         if (self._start != self._curr):
-            lexeme = self._line[self._start:self._curr] 
+            token = self._line[self._start:self._curr] 
             scanning = False
         self._bump()
-        return scanning, lexeme
+        return scanning, token
 
-    # this method will return the next lexeme in the stream
-    def _get_next_lexeme(self):
-        lexeme = None
+    # this method will return the next token in the stream
+    def _get_next_token(self):
+        token = None
         scanning = True
 
         if (self._line == None):
@@ -236,43 +236,43 @@ class JackTokenizer():
 
         # EOF
         if (self._line == ''):
-            return lexeme
+            return token
 
         while (scanning):
-            # EOF encountered while processing lexemes
+            # EOF encountered while processing tokens
             if (self._line == ''):
                 break
 
             if (self._curr == self._line_length or self._line[self._curr] == '\n'):
-                scanning, lexeme = self._handle_end_of_line()
+                scanning, token = self._handle_end_of_line()
             elif (self._line[self._curr] == '"'):
-                scanning, lexeme  = self._handle_string()
+                scanning, token  = self._handle_string()
             elif (self._line[self._curr] in self.SYMBOLS):
-                scanning, lexeme = self._handle_symbol()
+                scanning, token = self._handle_symbol()
             elif (self._line[self._curr] == ' ' or self._line[self._curr] == '\t'):
-                scanning, lexeme = self._handle_space()
+                scanning, token = self._handle_space()
             elif (scanning):
-                # if we got this far, no lexemes have been found yet and we havent reached end of line or EOF
+                # if we got this far, no tokens have been found yet and we havent reached end of line or EOF
                 self._curr += 1
 
-        return lexeme
+        return token
 
     def token(self):
-        return self._curr_lexeme
+        return self._curr_token
 
-    # return true if there are more tokens to process (_next_lexeme is not None)
+    # return true if there are more tokens to process (_next_token is not None)
     def has_more_tokens(self):
-        if self._next_lexeme is None:
+        if self._next_token is None:
             return False
         else:
             return True
 
-    # move to the next lexeme
+    # move to the next token
     def advance(self):
-        if self._next_lexeme is None:
-            raise TokenizerError("Cannot call advance() if there are no more lexemes to process")
-        self._curr_lexeme = self._next_lexeme
-        self._next_lexeme = self._get_next_lexeme()
+        if self._next_token is None:
+            raise TokenizerError("Cannot call advance() if there are no more tokens to process")
+        self._curr_token = self._next_token
+        self._next_token = self._get_next_token()
 
     # determine the type of the token
     def token_type(self):
@@ -281,53 +281,53 @@ class JackTokenizer():
         string_regex = '^"([^"\n])*"$'
         id_regex = "^[a-zA-Z_][a-zA-Z0-9_]*$"
         
-        if (self._curr_lexeme == None):
+        if (self._curr_token == None):
             raise TokenizerError("Cannot call token_type() before advance() has been called()")
         
         # see if we have any matches
-        if (self._curr_lexeme in self.KEYWORDS):
+        if (self._curr_token in self.KEYWORDS):
             t_type = self.T_KEYWORD
-        elif (self._curr_lexeme in self.SYMBOLS):
+        elif (self._curr_token in self.SYMBOLS):
             t_type = self.T_SYMBOL
-        elif (re.search(int_regex, self._curr_lexeme)):
-            value = int(self._curr_lexeme)
+        elif (re.search(int_regex, self._curr_token)):
+            value = int(self._curr_token)
             if (value >= 0 and value <= 32767):
                 t_type = self.T_INT_CONSTANT
             else:
-                raise TokenError(self._curr_lexeme, "Integers must be in the range 0..32767")
-        elif (re.search(string_regex, self._curr_lexeme)):
+                raise TokenError(self._curr_token, "Integers must be in the range 0..32767")
+        elif (re.search(string_regex, self._curr_token)):
             t_type = self.T_STRING_CONSTANT
-        elif (re.search(id_regex, self._curr_lexeme)):
+        elif (re.search(id_regex, self._curr_token)):
             t_type = self.T_IDENTIFIER
         else:
-            raise TokenError(self._curr_lexeme, "Unable to determine token type")
+            raise TokenError(self._curr_token, "Unable to determine token type")
 
         return t_type
 
     def keyword(self):
         if (self.token_type() is not self.T_KEYWORD):
             raise TokenizerError("Token type must be {} to call the keyword() method".format(self.T_KEYWORD))
-        return self._curr_lexeme.upper()
+        return self._curr_token.upper()
 
     def symbol(self):
         if (self.token_type() is not self.T_SYMBOL):
             raise TokenizerError("Token type must be {} to call the symbol() method".format(self.T_SYMBOL))
-        return self._curr_lexeme
+        return self._curr_token
     
     def identifier(self):
         if (self.token_type() is not self.T_IDENTIFIER):
             raise TokenizerError("Token type must be {} to call the identifier() method".format(self.T_IDENTIFIER))
-        return self._curr_lexeme
+        return self._curr_token
 
     def int_val(self):
         if (self.token_type() is not self.T_INT_CONSTANT):
             raise TokenizerError("Token type must be {} to call the int_val() method".format(self.T_INT_CONSTANT))
-        return self._curr_lexeme
+        return self._curr_token
 
     def string_val(self):
         if (self.token_type() is not self.T_STRING_CONSTANT):
             raise TokenizerError("Token type must be {} to call the string_val() method".format(self.T_STRING_CONSTANT))
-        return self._curr_lexeme.strip('"')
+        return self._curr_token.strip('"')
     
     def token_xml_header(self):
         return "<tokens>\n"
@@ -336,12 +336,12 @@ class JackTokenizer():
         return "</tokens>\n"
 
     def token_xml(self):
-        token = self._curr_lexeme.strip('"')
+        token = self._curr_token.strip('"')
         if (self.token_type() == self.T_SYMBOL):
-            if (self._curr_lexeme == "<"):
+            if (self._curr_token == "<"):
                 token = "&lt;"
-            elif (self._curr_lexeme == ">"):
+            elif (self._curr_token == ">"):
                 token = "&gt;"
-            elif (self._curr_lexeme == "&"):
+            elif (self._curr_token == "&"):
                 token = "&amp;"
         return "  <{}> {} </{}>\n".format(self.TYPE_XML[self.token_type()], token, self.TYPE_XML[self.token_type()])
