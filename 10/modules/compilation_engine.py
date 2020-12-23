@@ -120,6 +120,9 @@ class CompilationEngine:
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
+        # (',' varname)*
+        self._compile_varname_list()
+
         # ; symbol
         if ((self._tkn.token_type() != self._tkn.T_SYMBOL) or (self._tkn.token() != ";")):
             raise CompilationError("Expected symbol <;>, found <{}> instead".format(self._tkn.token()))
@@ -142,6 +145,7 @@ class CompilationEngine:
             # if its a keyword that isnt int, char, or boolean, its invalid
             if (self._tkn.keyword() != self._tkn.K_INT) and (self._tkn.keyword() != self._tkn.K_CHAR) and (self._tkn.keyword() != self._tkn.K_BOOLEAN):
                 raise CompilationError("Invalid type <{}>. Expected char, int, boolean, or className".format(self._tkn.token()))
+            
             # output keyword
             self._print_xml_token("keyword", self._tkn.token())
             self._tkn.advance()
@@ -151,6 +155,35 @@ class CompilationEngine:
             self._tkn.advance()
         else:
             raise CompilationError("Invalid type <{}>. Expected char, int, boolean, or className".format(self._tkn.token()))
+
+    # Compile a list of variable names
+    # Grammar:
+    # (',' varName)*
+    def _compile_varname_list(self):
+        # return if there are no more variables to process
+        if self._tkn.token_type() != self._tkn.T_SYMBOL:
+            return
+        if self._tkn.symbol() == ';':
+            return
+        if self._tkn.symbol() != ',':
+            raise CompilationError("Invalid symbol. Expected ',' but found <{}>".format(self._tkn.token()))
+
+        # , symbol
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
+
+        # fail if it isnt an identifier
+        if self._tkn.token_type() != self._tkn.T_IDENTIFIER:
+            raise CompilationError("Expected identifier, found <{}> instead.".format(self._tkn.token()))
+        
+        # varName
+        self._print_xml_token("identifier", self._tkn.token())
+        self._tkn.advance()
+
+        # process more
+        self._compile_varname_list()
+        return
+
 
     def _compile_subroutine(self):
         pass
