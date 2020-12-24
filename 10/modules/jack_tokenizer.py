@@ -70,9 +70,9 @@ class JackTokenizer():
     }
 
     K_CLASS = "CLASS"
-    # K_METHOD = "METHOD"
-    # K_FUNCTION = "FUNCTION"
-    # K_CONSTRUCTOR = "CONSTRUCTOR"
+    K_METHOD = "METHOD"
+    K_FUNCTION = "FUNCTION"
+    K_CONSTRUCTOR = "CONSTRUCTOR"
     K_INT = "INT"
     K_BOOLEAN = "BOOLEAN"
     K_CHAR = "CHAR"

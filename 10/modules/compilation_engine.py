@@ -13,7 +13,6 @@ class CompilationEngine:
     # Create a new tokenizer for the specified input stream
     # Make sure the tokenizer stream has at least one token
     # Advance to the first token
-    # Make sure the first token is a "class" keyword
     # Call the recursive function to compile the class
     # After the recursion exits, there should be no more tokens to process
     def __init__(self, in_f, out_f):
@@ -47,13 +46,56 @@ class CompilationEngine:
     # <type> value </type>
     def _print_xml_token(self, type, value):
         self._println("<{}> {} </{}>".format(type, value, type))
+    
+    # Helper method to determine if the token matches a type
+    def _is_type(self, type):
+        if self._tkn.token_type() == type:
+            return True
+        else:
+            return False
+
+    # Helper method to determine if current token is a keyword
+    def _is_keyword(self):
+        return self._is_type(self._tkn.T_KEYWORD)
+    
+    # Helper method to determine if current token is a symbol
+    def _is_symbol(self):
+        return self._is_type(self._tkn.T_SYMBOL)
+
+    # Helper method to determine if current token is an identifier
+    def _is_identifier(self):
+        return self._is_type(self._tkn.T_IDENTIFIER)
+    
+    # Helper method to determine if the current token is in the provided list
+    # The method to get the token is func, if this shouldn't be called, a tokenizer error
+    # will be raised
+    def _token_in(self, func, list):
+        if func() in list:
+            return True
+        else:
+            return False
+    
+    # Helper method to determine if the current token is equal to the provided symbol
+    def _symbol_is(self, symbol):
+        func = self._tkn.symbol
+        return self._token_in(func, [symbol])
+    
+    # Helper method to determine if the current token is equal to the provided keyword
+    def _keyword_is(self, keyword):
+        func = self._tkn.keyword
+        return self._token_in(func, [keyword])
+    
+     # Helper method to determine if the current token is in the provided list of keywords
+    def _keyword_in(self, keyword_list):
+        func = self._tkn.keyword
+        return self._token_in(func, keyword_list)
 
     # Compile a class
     # Grammar:
     # 'class' className '{' classVarDec* subroutineDec * '}'
     def _compile_class(self):
         # make sure its a class symbol
-        if ((self._tkn.token_type() != self._tkn.T_KEYWORD) or (self._tkn.keyword() != self._tkn.K_CLASS)):
+        if ((not self._is_keyword()) or (not self._keyword_is(self._tkn.K_CLASS))):
             raise CompilationError("Expected keyword <class>, found <{}> instead".format(self._tkn.token()))
 
         # class superstructure
@@ -65,27 +107,25 @@ class CompilationEngine:
         self._tkn.advance()
 
         # class name (identifier)
-        if (self._tkn.token_type() != self._tkn.T_IDENTIFIER):
+        if (not self._is_identifier()):
             raise CompilationError("Expected identifier, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
-        # { symbol
-        if ((self._tkn.token_type() != self._tkn.T_SYMBOL) or (self._tkn.token() != "{")):
+        # { symbol:
+        if ((not self._is_symbol()) or (not self._symbol_is("{"))):
             raise CompilationError("Expected symbol <{{>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
-        # if next token is static or field keyword, process classVarDec*
-        # if self._tkn.token_type() == self._tkn.T_KEYWORD:
-        #     if (self._tkn.keyword() == self._tkn.K_STATIC) or (self._tkn.keyword() == self._tkn.K_FIELD):
+        # classVarDec*
         self._compile_class_var_dec()
         
-        # if next token is constructor, function, or method keyword, process subroutineDec*
+        # subroutineDec*
         
 
         # } symbol
-        if ((self._tkn.token_type() != self._tkn.T_SYMBOL) or (self._tkn.token() != "}")):
+        if ((not self._is_symbol()) or (not self._symbol_is("}"))):
             raise CompilationError("Expected symbol <}}>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
 
@@ -98,9 +138,9 @@ class CompilationEngine:
     # ('static' | 'field') type varName (',' varName)* ';'
     def _compile_class_var_dec(self):
         # return if no more variable declarations to process
-        if self._tkn.token_type() != self._tkn.T_KEYWORD:
+        if not self._is_keyword():
             return
-        if (self._tkn.keyword() != self._tkn.K_STATIC) and (self._tkn.keyword() != self._tkn.K_FIELD):
+        if (not self._keyword_in([self._tkn.K_STATIC, self._tkn.K_FIELD])):
             return
         
         # classVarDec superstructure
@@ -115,7 +155,7 @@ class CompilationEngine:
         self._compile_type()
 
         # varName
-        if (self._tkn.token_type() != self._tkn.T_IDENTIFIER):
+        if (not self._is_identifier()):
             raise CompilationError("Expected identifier, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
@@ -124,7 +164,7 @@ class CompilationEngine:
         self._compile_varname_list()
 
         # ; symbol
-        if ((self._tkn.token_type() != self._tkn.T_SYMBOL) or (self._tkn.token() != ";")):
+        if ((not self._is_symbol()) or (not self._symbol_is(";"))):
             raise CompilationError("Expected symbol <;>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
@@ -141,15 +181,16 @@ class CompilationEngine:
     # Grammar:
     # 'int' | 'char' | 'boolean' | className
     def _compile_type(self):
-        if self._tkn.token_type() == self._tkn.T_KEYWORD:
+        if self._is_keyword():
             # if its a keyword that isnt int, char, or boolean, its invalid
-            if (self._tkn.keyword() != self._tkn.K_INT) and (self._tkn.keyword() != self._tkn.K_CHAR) and (self._tkn.keyword() != self._tkn.K_BOOLEAN):
+            #if (self._tkn.keyword() != self._tkn.K_INT) and (self._tkn.keyword() != self._tkn.K_CHAR) and (self._tkn.keyword() != self._tkn.K_BOOLEAN):
+            if (not self._keyword_in([self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN])):
                 raise CompilationError("Invalid type <{}>. Expected char, int, boolean, or className".format(self._tkn.token()))
             
             # output keyword
             self._print_xml_token("keyword", self._tkn.token())
             self._tkn.advance()
-        elif self._tkn.token_type() == self._tkn.T_IDENTIFIER:
+        elif self._is_identifier():
             # output identifier
             self._print_xml_token("identifier", self._tkn.token())
             self._tkn.advance()
@@ -161,11 +202,11 @@ class CompilationEngine:
     # (',' varName)*
     def _compile_varname_list(self):
         # return if there are no more variables to process
-        if self._tkn.token_type() != self._tkn.T_SYMBOL:
+        if not self._is_symbol():
             return
-        if self._tkn.symbol() == ';':
+        if self._symbol_is(";"):
             return
-        if self._tkn.symbol() != ',':
+        if not self._symbol_is(","):
             raise CompilationError("Invalid symbol. Expected ',' but found <{}>".format(self._tkn.token()))
 
         # , symbol
@@ -173,7 +214,7 @@ class CompilationEngine:
         self._tkn.advance()
 
         # fail if it isnt an identifier
-        if self._tkn.token_type() != self._tkn.T_IDENTIFIER:
+        if not self._is_identifier():
             raise CompilationError("Expected identifier, found <{}> instead.".format(self._tkn.token()))
         
         # varName
@@ -184,9 +225,21 @@ class CompilationEngine:
         self._compile_varname_list()
         return
 
-
+    # Compile a subroutine
+    # Grammar:
+    # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' paraeterList ')' subroutineBody
     def _compile_subroutine(self):
-        pass
+        # return if there are no more subroutines to process
+        if not self._is_symbol():
+            return
+        valid_keywords = [
+            self._tkn.K_METHOD,
+            self._tkn.K_FUNCTION,
+            self._tkn.K_CONSTRUCTOR,
+        ]
+        
+        
+
 
     def _compile_parameter_list(self):
         pass
