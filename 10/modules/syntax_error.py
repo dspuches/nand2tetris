@@ -1,4 +1,4 @@
-class CompilationError(Exception):
+class SyntaxError(Exception):
     """Exception raised for errors compiling a jack file
 
     Attributes:

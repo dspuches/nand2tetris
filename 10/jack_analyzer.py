@@ -4,6 +4,7 @@ import os
 
 from modules.jack_tokenizer import JackTokenizer
 from modules.compilation_engine import CompilationEngine
+from modules.syntax_error import SyntaxError
 
 def main(input):
     infiles = []
@@ -63,7 +64,10 @@ def main(input):
 
             with open(outfile, "w") as out_f:
                 with open(infile) as in_f:
-                    engine = CompilationEngine(in_f, out_f)
+                    try:
+                        engine = CompilationEngine(in_f, out_f)
+                    except SyntaxError as e:
+                        print("Syntax error:{}".format(e.message))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
