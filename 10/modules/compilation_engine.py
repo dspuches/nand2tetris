@@ -20,14 +20,14 @@ class CompilationEngine:
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
         self._indents = ""
         if not self._tkn.has_more_tokens():
-            raise SyntaxError("No tokens found in input file!")
+            raise SyntaxError(self._tkn, "No tokens found in input file!")
         
         self._tkn.advance()                         # advance tokenizer once (to first token)
         # call the compile_class method
         self._compile_class()
         # make sure tokenizer has no more tokens. Raise exception if more tokens exist
         if (self._tkn.has_more_tokens()):
-            raise SyntaxError("Unexpected token found <{}>".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Unexpected token found <{}>".format(self._tkn.token()))
 
     # Increase the indentation of the output by two spaces
     def _indent(self):
@@ -96,7 +96,7 @@ class CompilationEngine:
     def _compile_class(self):
         # make sure its a class symbol
         if ((not self._is_keyword()) or (not self._keyword_is(self._tkn.K_CLASS))):
-            raise SyntaxError("Expected keyword <class>, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected keyword <class>, found <{}> instead".format(self._tkn.token()))
 
         # class superstructure
         self._println("<class>")
@@ -108,13 +108,13 @@ class CompilationEngine:
 
         # class name (identifier)
         if (not self._is_identifier()):
-            raise SyntaxError("Expected identifier, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
         # { symbol:
         if ((not self._is_symbol()) or (not self._symbol_is("{"))):
-            raise SyntaxError("Expected symbol <{{>, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected symbol <{{>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
@@ -126,7 +126,7 @@ class CompilationEngine:
 
         # } symbol
         if ((not self._is_symbol()) or (not self._symbol_is("}"))):
-            raise SyntaxError("Expected symbol <}}>, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected symbol <}}>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
 
         # close superstructure
@@ -156,7 +156,7 @@ class CompilationEngine:
 
         # varName
         if (not self._is_identifier()):
-            raise SyntaxError("Expected identifier, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
@@ -165,7 +165,7 @@ class CompilationEngine:
 
         # ; symbol
         if ((not self._is_symbol()) or (not self._symbol_is(";"))):
-            raise SyntaxError("Expected symbol <;>, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected symbol <;>, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
@@ -188,7 +188,7 @@ class CompilationEngine:
             # if its a keyword that isnt int, char, or boolean, its invalid
             if (not self._keyword_in(valid_keywords)):
                 lower_keywords = [each_string.lower() for each_string in valid_keywords]
-                raise SyntaxError("Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), lower_keywords))
+                raise SyntaxError(self._tkn, "Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), lower_keywords))
             
             # output keyword
             self._print_xml_token("keyword", self._tkn.token())
@@ -199,7 +199,7 @@ class CompilationEngine:
             self._tkn.advance()
         else:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
-            raise SyntaxError("Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), valid_keywords))
+            raise SyntaxError(self._tkn, "Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), valid_keywords))
 
     # Compile a list of variable names
     # Grammar:
@@ -211,7 +211,7 @@ class CompilationEngine:
         if self._symbol_is(";"):
             return
         if not self._symbol_is(","):
-            raise SyntaxError("Invalid symbol. Expected ',' but found <{}>".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Invalid symbol. Expected ',' but found <{}>".format(self._tkn.token()))
 
         # , symbol
         self._print_xml_token("symbol", self._tkn.token())
@@ -219,7 +219,7 @@ class CompilationEngine:
 
         # fail if it isnt an identifier
         if not self._is_identifier():
-            raise SyntaxError("Expected identifier, found <{}> instead.".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead.".format(self._tkn.token()))
         
         # varName
         self._print_xml_token("identifier", self._tkn.token())
@@ -257,7 +257,7 @@ class CompilationEngine:
 
         # subroutineName
         if (not self._is_identifier()):
-            raise SyntaxError("Expected identifier, found <{}> instead".format(self._tkn.token()))
+            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 

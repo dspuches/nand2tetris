@@ -67,7 +67,7 @@ def main(input):
                     try:
                         engine = CompilationEngine(in_f, out_f)
                     except SyntaxError as e:
-                        print("Syntax error:{}".format(e.message))
+                        print("Syntax error at line {}. {}".format(e.line_num, e.message))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -5,5 +5,6 @@ class SyntaxError(Exception):
         message -- explanation of the error
     """
 
-    def __init__(self, message):
+    def __init__(self, tkn, message):
         self.message = message
+        self.line_num = tkn._line_count

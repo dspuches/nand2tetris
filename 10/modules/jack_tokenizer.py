@@ -98,16 +98,21 @@ class JackTokenizer():
         self._line_length = 0                       # store length of current line
         self._start = 0                             # the index of the start of the token in current line
         self._curr = 0                              # the current index in the current line
-        self._next_token = self._get_next_token() # attempt to get the next token
+        self._eof = False
+        self._next_token = self._get_next_token()  # attempt to get the next token
         self._curr_token = None
 
     # read a line from the stream, increase line count, reset indices
     def _read_next_line(self):
-        self._line = self._fd.readline()
-        self._line_count += 1
-        self._line_length = len(self._line)
-        self._start = 0
-        self._curr = 0
+        next = self._fd.readline()
+        if next == '':
+            self._eof = True
+        else:
+            self._line = next
+            self._line_count += 1
+            self._line_length = len(self._line)
+            self._start = 0
+            self._curr = 0
     
     # move both curr and start to the next position
     def _bump(self):
@@ -197,7 +202,7 @@ class JackTokenizer():
 
         while (scanning):
             if (self._curr == self._line_length):
-                if (self._line == ''):
+                if (self._eof):
                     #EOF without finding closure. Raise exception
                     raise TokenizerError("Reached EOF before finding closing */ to multiline comment")
                 # end of current line, move to next
@@ -235,12 +240,12 @@ class JackTokenizer():
             self._read_next_line()
 
         # EOF
-        if (self._line == ''):
+        if (self._eof):
             return token
 
         while (scanning):
             # EOF encountered while processing tokens
-            if (self._line == ''):
+            if (self._eof):
                 break
 
             if (self._curr == self._line_length or self._line[self._curr] == '\n'):
