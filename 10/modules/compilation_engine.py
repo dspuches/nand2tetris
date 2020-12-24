@@ -90,13 +90,28 @@ class CompilationEngine:
         func = self._tkn.keyword
         return self._token_in(func, keyword_list)
 
+    # Helper method to raise a syntax error for an unexpected symbol
+    def _symbol_syntax_error(self, symbol):
+        raise SyntaxError(self._tkn, "Expected symbol <{}>, found <{}> instead".format(symbol, self._tkn.token()))
+
+    # Helper method to raise a syntax error for an unexpected keyword
+    def _keyword_syntax_error(self, keyword):
+        raise SyntaxError(self._tkn, "Expected keyword <{}>, found <{}> instead".format(keyword, self._tkn.token()))
+
+    # Helper method to raise a syntax error for a missing identifier
+    def _identifier_syntax_error(self):
+        raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
+
+    def _type_syntax_error(self, valid_types):
+        raise SyntaxError(self._tkn, "Expected type {}, found <{}> instead".format(valid_types, self._tkn.token()))
+
     # Compile a class
     # Grammar:
     # 'class' className '{' classVarDec* subroutineDec * '}'
     def _compile_class(self):
         # make sure its a class symbol
         if ((not self._is_keyword()) or (not self._keyword_is(self._tkn.K_CLASS))):
-            raise SyntaxError(self._tkn, "Expected keyword <class>, found <{}> instead".format(self._tkn.token()))
+            self._keyword_syntax_error("class")
 
         # class superstructure
         self._println("<class>")
@@ -108,13 +123,13 @@ class CompilationEngine:
 
         # class name (identifier)
         if (not self._is_identifier()):
-            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
+            self._identifier_syntax_error()
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
         # { symbol:
         if ((not self._is_symbol()) or (not self._symbol_is("{"))):
-            raise SyntaxError(self._tkn, "Expected symbol <{{>, found <{}> instead".format(self._tkn.token()))
+            self._symbol_syntax_error("{")
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
@@ -126,7 +141,7 @@ class CompilationEngine:
 
         # } symbol
         if ((not self._is_symbol()) or (not self._symbol_is("}"))):
-            raise SyntaxError(self._tkn, "Expected symbol <}}>, found <{}> instead".format(self._tkn.token()))
+            self._symbol_syntax_error("}")
         self._print_xml_token("symbol", self._tkn.token())
 
         # close superstructure
@@ -156,7 +171,7 @@ class CompilationEngine:
 
         # varName
         if (not self._is_identifier()):
-            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
+            self._identifier_syntax_error()
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
@@ -165,7 +180,7 @@ class CompilationEngine:
 
         # ; symbol
         if ((not self._is_symbol()) or (not self._symbol_is(";"))):
-            raise SyntaxError(self._tkn, "Expected symbol <;>, found <{}> instead".format(self._tkn.token()))
+            self._symbol_syntax_error(";")
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
@@ -188,7 +203,8 @@ class CompilationEngine:
             # if its a keyword that isnt int, char, or boolean, its invalid
             if (not self._keyword_in(valid_keywords)):
                 lower_keywords = [each_string.lower() for each_string in valid_keywords]
-                raise SyntaxError(self._tkn, "Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), lower_keywords))
+                lower_keywords.append("className")
+                self._type_syntax_error(lower_keywords)
             
             # output keyword
             self._print_xml_token("keyword", self._tkn.token())
@@ -199,7 +215,8 @@ class CompilationEngine:
             self._tkn.advance()
         else:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
-            raise SyntaxError(self._tkn, "Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), valid_keywords))
+            lower_keywords.append("className")
+            self._type_syntax_error(lower_keywords)
 
     # Compile a list of variable names
     # Grammar:
@@ -211,7 +228,7 @@ class CompilationEngine:
         if self._symbol_is(";"):
             return
         if not self._symbol_is(","):
-            raise SyntaxError(self._tkn, "Invalid symbol. Expected ',' but found <{}>".format(self._tkn.token()))
+            self._symbol_syntax_error(",")
 
         # , symbol
         self._print_xml_token("symbol", self._tkn.token())
@@ -219,7 +236,7 @@ class CompilationEngine:
 
         # fail if it isnt an identifier
         if not self._is_identifier():
-            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead.".format(self._tkn.token()))
+            self._identifier_syntax_error()
         
         # varName
         self._print_xml_token("identifier", self._tkn.token())
@@ -257,15 +274,24 @@ class CompilationEngine:
 
         # subroutineName
         if (not self._is_identifier()):
-            raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
+            self._identifier_syntax_error()
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
 
         # ( symbol
+        if ((not self._is_symbol()) or (not self._symbol_is("("))):
+            self._symbol_syntax_error("(")
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
 
         # parameterList
+        self._compile_parameter_list()
 
         # } symbol
+        if ((not self._is_symbol()) or (not self._symbol_is(")"))):
+            self._symbol_syntax_error(")")
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
 
         # subroutineBody
 
@@ -279,7 +305,13 @@ class CompilationEngine:
         
 
     def _compile_parameter_list(self):
-        pass
+        # subroutineDec superstructure
+        self._println("<parameterList>")
+        self._indent()
+
+        # close superstructure
+        self._dedent()
+        self._println("</parameterList>")
 
     def _compile_var_dec(self):
         pass
