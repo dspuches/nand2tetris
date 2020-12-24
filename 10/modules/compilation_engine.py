@@ -122,7 +122,7 @@ class CompilationEngine:
         self._compile_class_var_dec()
         
         # subroutineDec*
-        
+        self._compile_subroutine()
 
         # } symbol
         if ((not self._is_symbol()) or (not self._symbol_is("}"))):
@@ -180,12 +180,15 @@ class CompilationEngine:
     # Compile a type token
     # Grammar:
     # 'int' | 'char' | 'boolean' | className
-    def _compile_type(self):
+    def _compile_type(self, include_void=False):
+        valid_keywords = [self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN]
+        if include_void:
+            valid_keywords.append(self._tkn.K_VOID)
         if self._is_keyword():
             # if its a keyword that isnt int, char, or boolean, its invalid
-            #if (self._tkn.keyword() != self._tkn.K_INT) and (self._tkn.keyword() != self._tkn.K_CHAR) and (self._tkn.keyword() != self._tkn.K_BOOLEAN):
-            if (not self._keyword_in([self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN])):
-                raise CompilationError("Invalid type <{}>. Expected char, int, boolean, or className".format(self._tkn.token()))
+            if (not self._keyword_in(valid_keywords)):
+                lower_keywords = [each_string.lower() for each_string in valid_keywords]
+                raise CompilationError("Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), lower_keywords))
             
             # output keyword
             self._print_xml_token("keyword", self._tkn.token())
@@ -195,7 +198,8 @@ class CompilationEngine:
             self._print_xml_token("identifier", self._tkn.token())
             self._tkn.advance()
         else:
-            raise CompilationError("Invalid type <{}>. Expected char, int, boolean, or className".format(self._tkn.token()))
+            lower_keywords = [each_string.lower() for each_string in valid_keywords]
+            raise CompilationError("Invalid type <{}>. Expected {}, or className".format(self._tkn.token(), valid_keywords))
 
     # Compile a list of variable names
     # Grammar:
@@ -227,19 +231,52 @@ class CompilationEngine:
 
     # Compile a subroutine
     # Grammar:
-    # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' paraeterList ')' subroutineBody
+    # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
     def _compile_subroutine(self):
-        # return if there are no more subroutines to process
-        if not self._is_symbol():
+        # return if there are no more subroutines to process (not a keyword or not a function keyword)
+        if not self._is_keyword():
             return
         valid_keywords = [
             self._tkn.K_METHOD,
             self._tkn.K_FUNCTION,
             self._tkn.K_CONSTRUCTOR,
         ]
+        if (not self._keyword_in(valid_keywords)):
+            return
         
-        
+        # subroutineDec superstructure
+        self._println("<subroutineDec>")
+        self._indent()
 
+        # ('constructor' | 'function' | 'method')
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # ('void' | type)
+        self._compile_type(True)
+
+        # subroutineName
+        if (not self._is_identifier()):
+            raise CompilationError("Expected identifier, found <{}> instead".format(self._tkn.token()))
+        self._print_xml_token("identifier", self._tkn.token())
+        self._tkn.advance()
+
+        # ( symbol
+
+        # parameterList
+
+        # } symbol
+
+        # subroutineBody
+
+        # close superstructure
+        self._dedent()
+        self._println("</subroutineDec>")
+
+        # process more subroutines
+        self._compile_subroutine()
+        return
+        
 
     def _compile_parameter_list(self):
         pass

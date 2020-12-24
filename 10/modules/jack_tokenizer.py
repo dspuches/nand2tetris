@@ -76,7 +76,7 @@ class JackTokenizer():
     K_INT = "INT"
     K_BOOLEAN = "BOOLEAN"
     K_CHAR = "CHAR"
-    # K_VOID = "VOID"
+    K_VOID = "VOID"
     # K_VAR = "VAR"
     K_STATIC = "STATIC"
     K_FIELD = "FIELD"
