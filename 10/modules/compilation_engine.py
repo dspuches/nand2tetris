@@ -126,6 +126,16 @@ class CompilationEngine:
             self._identifier_syntax_error()
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
+    
+    # Helper method to compile a symbol
+    # Checks to see if current token is a symbol that matches the provided symbol, if not raises syntax error
+    # Otherwise, it compiles the symbol
+    def _compile_symbol(self, symbol, advance=True):
+        if ((not self._is_symbol()) or (not self._symbol_is(symbol))):
+            self._symbol_syntax_error(symbol)
+        self._print_xml_token("symbol", self._tkn.token())
+        if (advance):
+            self._tkn.advance()
 
     # Compile a class
     # Grammar:
@@ -147,10 +157,7 @@ class CompilationEngine:
         self._compile_identifier()
 
         # { symbol:
-        if ((not self._is_symbol()) or (not self._symbol_is("{"))):
-            self._symbol_syntax_error("{")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol("{")
 
         # classVarDec*
         self._compile_class_var_dec()
@@ -159,9 +166,7 @@ class CompilationEngine:
         self._compile_subroutine()
 
         # } symbol
-        if ((not self._is_symbol()) or (not self._symbol_is("}"))):
-            self._symbol_syntax_error("}")
-        self._print_xml_token("symbol", self._tkn.token())
+        self._compile_symbol("}", False)
 
         # close superstructure
         self._dedent()
@@ -195,10 +200,7 @@ class CompilationEngine:
         self._compile_varname_list()
 
         # ; symbol
-        if ((not self._is_symbol()) or (not self._symbol_is(";"))):
-            self._symbol_syntax_error(";")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol(";")
 
         # close superstructure
         self._dedent()
@@ -243,12 +245,9 @@ class CompilationEngine:
             return
         if self._symbol_is(";"):
             return
-        if not self._symbol_is(","):
-            self._symbol_syntax_error(",")
 
-        # , symbol
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        # # , symbol
+        self._compile_symbol(",")
         
         # varName
         self._compile_identifier()
@@ -287,10 +286,7 @@ class CompilationEngine:
         self._compile_identifier()
 
         # ( symbol
-        if ((not self._is_symbol()) or (not self._symbol_is("("))):
-            self._symbol_syntax_error("(")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol("(")
 
         # parameterList superstructure
         self._println("<parameterList>")
@@ -304,10 +300,7 @@ class CompilationEngine:
         self._println("</parameterList>")
 
         # ) symbol
-        if ((not self._is_symbol()) or (not self._symbol_is(")"))):
-            self._symbol_syntax_error(")")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol(")")
 
         # subroutineBody
         self._compile_subroutine_body()
@@ -334,6 +327,7 @@ class CompilationEngine:
         # varName
         self._compile_identifier()
 
+        # (',' type varName)*
         self._compile_parameter()
     
     # Compile zero or more parameters
@@ -345,12 +339,9 @@ class CompilationEngine:
             return
         if self._symbol_is(")"):
             return
-        if not self._symbol_is(","):
-            self._symbol_syntax_error(",")
         
         # , symbol
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol(",")
 
         # type
         self._compile_type()
@@ -371,16 +362,10 @@ class CompilationEngine:
         self._indent()
 
         # { symbol
-        if ((not self._is_symbol()) or (not self._symbol_is("{"))):
-            self._symbol_syntax_error("{")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol("{")
 
         # } symbol
-        if ((not self._is_symbol()) or (not self._symbol_is("}"))):
-            self._symbol_syntax_error("}")
-        self._print_xml_token("symbol", self._tkn.token())
-        self._tkn.advance()
+        self._compile_symbol("}")
 
         # close superstructure
         self._dedent()
