@@ -136,6 +136,32 @@ class CompilationEngine:
         self._print_xml_token("symbol", self._tkn.token())
         if (advance):
             self._tkn.advance()
+    
+    # Helper method to compile a type token
+    # Grammar:
+    # 'int' | 'char' | 'boolean' | className
+    def _compile_type(self, include_void=False):
+        valid_keywords = [self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN]
+        if include_void:
+            valid_keywords.append(self._tkn.K_VOID)
+        if self._is_keyword():
+            # if its a keyword that isnt int, char, or boolean, its invalid
+            if (not self._keyword_in(valid_keywords)):
+                lower_keywords = [each_string.lower() for each_string in valid_keywords]
+                lower_keywords.append("className")
+                self._type_syntax_error(lower_keywords)
+            
+            # output keyword
+            self._print_xml_token("keyword", self._tkn.token())
+            self._tkn.advance()
+        elif self._is_identifier():
+            # output identifier
+            self._print_xml_token("identifier", self._tkn.token())
+            self._tkn.advance()
+        else:
+            lower_keywords = [each_string.lower() for each_string in valid_keywords]
+            lower_keywords.append("className")
+            self._type_syntax_error(lower_keywords)
 
     # Compile a class
     # Grammar:
@@ -209,32 +235,6 @@ class CompilationEngine:
         # process more classVarDec's (if there are any)
         self._compile_class_var_dec()
         return
-
-    # Compile a type token
-    # Grammar:
-    # 'int' | 'char' | 'boolean' | className
-    def _compile_type(self, include_void=False):
-        valid_keywords = [self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN]
-        if include_void:
-            valid_keywords.append(self._tkn.K_VOID)
-        if self._is_keyword():
-            # if its a keyword that isnt int, char, or boolean, its invalid
-            if (not self._keyword_in(valid_keywords)):
-                lower_keywords = [each_string.lower() for each_string in valid_keywords]
-                lower_keywords.append("className")
-                self._type_syntax_error(lower_keywords)
-            
-            # output keyword
-            self._print_xml_token("keyword", self._tkn.token())
-            self._tkn.advance()
-        elif self._is_identifier():
-            # output identifier
-            self._print_xml_token("identifier", self._tkn.token())
-            self._tkn.advance()
-        else:
-            lower_keywords = [each_string.lower() for each_string in valid_keywords]
-            lower_keywords.append("className")
-            self._type_syntax_error(lower_keywords)
 
     # Compile a list of variable names
     # Grammar:
