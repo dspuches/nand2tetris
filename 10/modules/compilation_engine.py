@@ -308,13 +308,14 @@ class CompilationEngine:
         self._dedent()
         self._println("</parameterList>")
 
-        # } symbol
+        # ) symbol
         if ((not self._is_symbol()) or (not self._symbol_is(")"))):
             self._symbol_syntax_error(")")
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
         # subroutineBody
+        self._compile_subroutine_body()
 
         # close superstructure
         self._dedent()
@@ -371,6 +372,30 @@ class CompilationEngine:
         # process more params
         self._compile_parameter()
         return
+    
+    # Compile a subroutine body
+    # Grammar:
+    # '{' varDec* statements '}'
+    def _compile_subroutine_body(self):
+        # superstructure
+        self._println("<subroutineBody>")
+        self._indent()
+
+        # { symbol
+        if ((not self._is_symbol()) or (not self._symbol_is("{"))):
+            self._symbol_syntax_error("{")
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
+
+        # } symbol
+        if ((not self._is_symbol()) or (not self._symbol_is("}"))):
+            self._symbol_syntax_error("}")
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
+
+        # close superstructure
+        self._dedent()
+        self._println("</subroutineBody>")
         
     def _compile_var_dec(self):
         pass
