@@ -48,7 +48,7 @@ class CompilationEngine:
         self._println("<{}> {} </{}>".format(type, value, type))
     
     # Helper method to determine if the token matches a type
-    def _is_type(self, type):
+    def _token_is_type(self, type):
         if self._tkn.token_type() == type:
             return True
         else:
@@ -56,15 +56,28 @@ class CompilationEngine:
 
     # Helper method to determine if current token is a keyword
     def _is_keyword(self):
-        return self._is_type(self._tkn.T_KEYWORD)
+        return self._token_is_type(self._tkn.T_KEYWORD)
     
     # Helper method to determine if current token is a symbol
     def _is_symbol(self):
-        return self._is_type(self._tkn.T_SYMBOL)
+        return self._token_is_type(self._tkn.T_SYMBOL)
 
     # Helper method to determine if current token is an identifier
     def _is_identifier(self):
-        return self._is_type(self._tkn.T_IDENTIFIER)
+        return self._token_is_type(self._tkn.T_IDENTIFIER)
+
+    # Helper method to determine if current token is a variable type:
+    # char, int, boolean, or identifier
+    def _is_var_type(self):
+        is_var_type = False
+        valid_keywords = [self._tkn.K_BOOLEAN, self._tkn.K_INT, self._tkn.K_CHAR]
+        # if keyword and char/int/boolean/identifier, true
+        if (self._is_keyword()):
+            if (self._tkn.keyword() in valid_keywords):
+                is_var_type = True
+        elif (self._is_identifier()):
+            is_var_type = True
+        return is_var_type
     
     # Helper method to determine if the current token is in the provided list
     # The method to get the token is func, if this shouldn't be called, a tokenizer error
@@ -284,8 +297,16 @@ class CompilationEngine:
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
 
+        # parameterList superstructure
+        self._println("<parameterList>")
+        self._indent()
+
         # parameterList
         self._compile_parameter_list()
+
+        # close superstructure
+        self._dedent()
+        self._println("</parameterList>")
 
         # } symbol
         if ((not self._is_symbol()) or (not self._symbol_is(")"))):
@@ -303,16 +324,54 @@ class CompilationEngine:
         self._compile_subroutine()
         return
         
-
+    # Compile a (possibly empty) parameter list
+    # Grammar:
+    # ((type varName) (',' type varName)*)?
     def _compile_parameter_list(self):
-        # subroutineDec superstructure
-        self._println("<parameterList>")
-        self._indent()
+        # on entry, it should be a type
+        if (not self._is_var_type()):
+            return
 
-        # close superstructure
-        self._dedent()
-        self._println("</parameterList>")
+        # type
+        self._compile_type()
 
+        # varName
+        if (not self._is_identifier()):
+            self._identifier_syntax_error()
+        self._print_xml_token("identifier", self._tkn.token())
+        self._tkn.advance()
+
+        self._compile_parameter()
+    
+    # Compile zero or more parameters
+    # Grammar:
+    # (',' type varName)*
+    def _compile_parameter(self):
+        # return if there are no more params to process
+        if not self._is_symbol():
+            return
+        if self._symbol_is(")"):
+            return
+        if not self._symbol_is(","):
+            self._symbol_syntax_error(",")
+        
+        # , symbol
+        self._print_xml_token("symbol", self._tkn.token())
+        self._tkn.advance()
+
+        # type
+        self._compile_type()
+
+        # varName
+        if (not self._is_identifier()):
+            self._identifier_syntax_error()
+        self._print_xml_token("identifier", self._tkn.token())
+        self._tkn.advance()
+
+        # process more params
+        self._compile_parameter()
+        return
+        
     def _compile_var_dec(self):
         pass
 
