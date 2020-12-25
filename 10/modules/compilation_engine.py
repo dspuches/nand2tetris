@@ -435,11 +435,33 @@ class CompilationEngine:
         
         self._compile_statements()
 
-    # Compile a let statment
+    # Compile a let statment. Assumes current token is a keyword = 'let'
     # Grammar:
-    # 'let' varName '=' varName
+    # 'let' varName ('[' expression ']')? '=' expression ';'
     def _compile_let(self):
+        # let superstructure
+        self._println("<letStatement>")
+        self._indent()
+
+        # let keyword
+        self._print_xml_token("keyword", self._tkn.token())
         self._tkn.advance()
+
+        # varName
+        self._compile_identifier()
+
+        # = symbol
+        self._compile_symbol("=")
+
+        # expression
+        self._compile_expression()
+
+        # ; symbol
+        self._compile_symbol(";")
+
+        # close superstructure
+        self._dedent()
+        self._println("</letStatement>")
 
     def _compile_do(self):
         pass
@@ -453,8 +475,11 @@ class CompilationEngine:
     def _compile_if(self):
         pass
 
+    # First pass of expression is to only allow an identifier as expression
+    # Grammar:
+    # identifier
     def _compile_expression(self):
-        pass
+        self._compile_identifier()
 
     def _compile_term(self):
         pass
