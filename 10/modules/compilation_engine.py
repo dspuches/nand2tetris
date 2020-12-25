@@ -191,7 +191,7 @@ class CompilationEngine:
         # subroutineDec*
         self._compile_subroutine()
 
-        # } symbol
+        # } symbol, dont advance to next token (shouldnt be any more)
         self._compile_symbol("}", False)
 
         # close superstructure
@@ -364,15 +364,53 @@ class CompilationEngine:
         # { symbol
         self._compile_symbol("{")
 
+        # varDec*
+        self._compile_var_dec()
+
         # } symbol
         self._compile_symbol("}")
 
         # close superstructure
         self._dedent()
         self._println("</subroutineBody>")
-        
+    
+    # Compile variable declaration(s)
+    # Grammar
+    # 'var' type varName (',' varName)* ';'
     def _compile_var_dec(self):
-        pass
+        # return if no more variable declarations to process
+        if not self._is_keyword():
+            return
+        if (not self._keyword_is(self._tkn.K_VAR)):
+            return
+        
+        # classVarDec superstructure
+        self._println("<varDec>")
+        self._indent()
+
+        # 'var'
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # type
+        self._compile_type()
+
+        # varName
+        self._compile_identifier()
+
+        # (',' varname)*
+        self._compile_varname_list()
+
+        # ; symbol
+        self._compile_symbol(";")
+
+        # close superstructure
+        self._dedent()
+        self._println("</varDec>")
+
+        # process more classVarDec's (if there are any)
+        self._compile_var_dec()
+        return
 
     def _compile_statements(self):
         pass
