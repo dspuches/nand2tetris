@@ -118,6 +118,15 @@ class CompilationEngine:
     def _type_syntax_error(self, valid_types):
         raise SyntaxError(self._tkn, "Expected type {}, found <{}> instead".format(valid_types, self._tkn.token()))
 
+    # Helper method to compile an identifier
+    # Checks to see if current token is an identifier, if not raises syntax error
+    # Otherwise, it compiles the ident token
+    def _compile_identifier(self):
+        if (not self._is_identifier()):
+            self._identifier_syntax_error()
+        self._print_xml_token("identifier", self._tkn.token())
+        self._tkn.advance()
+
     # Compile a class
     # Grammar:
     # 'class' className '{' classVarDec* subroutineDec * '}'
@@ -135,10 +144,7 @@ class CompilationEngine:
         self._tkn.advance()
 
         # class name (identifier)
-        if (not self._is_identifier()):
-            self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         # { symbol:
         if ((not self._is_symbol()) or (not self._symbol_is("{"))):
@@ -183,10 +189,7 @@ class CompilationEngine:
         self._compile_type()
 
         # varName
-        if (not self._is_identifier()):
-            self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         # (',' varname)*
         self._compile_varname_list()
@@ -246,14 +249,9 @@ class CompilationEngine:
         # , symbol
         self._print_xml_token("symbol", self._tkn.token())
         self._tkn.advance()
-
-        # fail if it isnt an identifier
-        if not self._is_identifier():
-            self._identifier_syntax_error()
         
         # varName
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         # process more
         self._compile_varname_list()
@@ -286,10 +284,7 @@ class CompilationEngine:
         self._compile_type(True)
 
         # subroutineName
-        if (not self._is_identifier()):
-            self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         # ( symbol
         if ((not self._is_symbol()) or (not self._symbol_is("("))):
@@ -337,10 +332,7 @@ class CompilationEngine:
         self._compile_type()
 
         # varName
-        if (not self._is_identifier()):
-            self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         self._compile_parameter()
     
@@ -364,10 +356,7 @@ class CompilationEngine:
         self._compile_type()
 
         # varName
-        if (not self._is_identifier()):
-            self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
-        self._tkn.advance()
+        self._compile_identifier()
 
         # process more params
         self._compile_parameter()
