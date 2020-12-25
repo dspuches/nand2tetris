@@ -367,6 +367,9 @@ class CompilationEngine:
         # varDec*
         self._compile_var_dec()
 
+        # statements
+        self._compile_statements()
+
         # } symbol
         self._compile_symbol("}")
 
@@ -408,17 +411,37 @@ class CompilationEngine:
         self._dedent()
         self._println("</varDec>")
 
-        # process more classVarDec's (if there are any)
+        # process more varDec's (if there are any)
         self._compile_var_dec()
         return
 
+    # Compile statements. Basically dispatches the handlers for each of the various statement types
+    # until there are no more to process
+    # Grammar:
+    # statement*
+    # statement grammar:
+    # letStatement | ifStatement | whileStatement | doStatement | returnStatement
     def _compile_statements(self):
-        pass
+        valid_keywords = [self._tkn.K_LET]
+        if (not self._is_keyword()):
+            return
+        if (not self._keyword_in(valid_keywords)):
+            return
+        
+        keyword = self._tkn.keyword()
+
+        if (keyword == self._tkn.K_LET):
+            self._compile_let()
+        
+        self._compile_statements()
+
+    # Compile a let statment
+    # Grammar:
+    # 'let' varName '=' varName
+    def _compile_let(self):
+        self._tkn.advance()
 
     def _compile_do(self):
-        pass
-
-    def _compile_let(self):
         pass
 
     def _compile_while(self):
