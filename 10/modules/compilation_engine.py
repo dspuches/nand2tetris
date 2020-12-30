@@ -255,8 +255,6 @@ class CompilationEngine:
         self._compile_type(True)                                # ('void' | type)
         self._compile_identifier()                              # subroutineName
         self._compile_symbol("(")                               # ( symbol
-        self._println("<parameterList>")                        # parameterList superstructure
-        self._indent()
         self._open_superstructure("parameterList")              # superstructure
         self._compile_parameter_list()                          # parameterList
         self._close_superstructure("parameterList")             # close superstructure
@@ -483,11 +481,13 @@ class CompilationEngine:
     # identifier
     def _compile_expression(self):
         self._open_superstructure("expression")                 # superstructure
-        self._compile_identifier()                              # identifier
+        self._compile_term()                              # identifier
         self._close_superstructure("expression")                # close superstructure
 
     def _compile_term(self):
-        pass
+        self._open_superstructure("term")                       # superstructure
+        self._compile_identifier()                              # identifier
+        self._close_superstructure("term")                      # close superstructure
 
     # First pass of expressionList is to only allow an identifier as expressionList
     # Grammar:
