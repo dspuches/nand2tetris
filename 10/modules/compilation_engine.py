@@ -427,6 +427,7 @@ class CompilationEngine:
             self._tkn.K_WHILE,
             self._tkn.K_RETURN,
             self._tkn.K_IF,
+            self._tkn.K_DO,
         ]
         if (not self._is_keyword()):
             return
@@ -443,6 +444,8 @@ class CompilationEngine:
             self._compile_return()
         elif (keyword == self._tkn.K_IF):
             self._compile_if()
+        elif (keyword == self._tkn.K_DO):
+            self._compile_do()
         
         self._compile_statements()
 
@@ -474,8 +477,43 @@ class CompilationEngine:
         self._dedent()
         self._println("</letStatement>")
 
+    # Compile a do statement. Assumes current token is a keyword = "do"
+    # Grammar:
+    # do subroutineCall ';'
     def _compile_do(self):
-        pass
+        # superstructure
+        self._println("<doStatement>")
+        self._indent()
+
+        # do keyword
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # subroutineCall
+        self._compile_subroutine_call()
+
+        # ; symbol
+        self._compile_symbol(";")
+
+        # close superstructure
+        self._dedent()
+        self._println("</doStatement>")
+
+    # Compile the subroutineCall portion of a do statement
+    # Grammar:
+    # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
+    def _compile_subroutine_call(self):
+        # subroutineName
+        self._compile_identifier()
+
+        # ( symbol
+        self._compile_symbol("(")
+
+        # expressionList
+        self._compile_expression_list()
+
+        # ) symbol
+        self._compile_symbol(")")
 
     # Compile a let statment. Assumes current token is a keyword = 'while'
     # Grammar:
@@ -612,6 +650,10 @@ class CompilationEngine:
     def _compile_term(self):
         pass
 
+    # First pass of expressionList is to only allow an identifier as expressionList
+    # Grammar:
+    # identifier
     def _compile_expression_list(self):
-        pass
+        # identifier
+        self._compile_identifier()
     

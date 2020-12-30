@@ -81,7 +81,7 @@ class JackTokenizer():
     K_STATIC = "STATIC"
     K_FIELD = "FIELD"
     K_LET = "LET"
-    # K_DO = "DO"
+    K_DO = "DO"
     K_IF = "IF"
     K_ELSE = "ELSE"
     K_WHILE = "WHILE"
