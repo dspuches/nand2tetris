@@ -85,7 +85,7 @@ class JackTokenizer():
     # K_IF = "IF"
     # K_ELSE = "ELSE"
     K_WHILE = "WHILE"
-    # K_RETURN = "RETURN"
+    K_RETURN = "RETURN"
     # K_TRUE = "TRUE"
     # K_FALSE = "FALSE"
     # K_NULL = "NULL"

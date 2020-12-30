@@ -425,6 +425,7 @@ class CompilationEngine:
         valid_keywords = [
             self._tkn.K_LET,
             self._tkn.K_WHILE,
+            self._tkn.K_RETURN,
         ]
         if (not self._is_keyword()):
             return
@@ -437,6 +438,8 @@ class CompilationEngine:
             self._compile_let()
         elif (keyword == self._tkn.K_WHILE):
             self._compile_while()
+        elif (keyword == self._tkn.K_RETURN):
+            self._compile_return()
         
         self._compile_statements()
 
@@ -505,8 +508,30 @@ class CompilationEngine:
         self._dedent()
         self._println("</whileStatement>")
 
+    # Compile a return statment. Assumes current token is a keyword = 'return'
+    # Grammar:
+    # 'return' expression? ';'
     def _compile_return(self):
-        pass
+        # superstructure
+        self._println("<returnStatement>")
+        self._indent()
+
+        # return keyword
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # if the next token is not a ; symbol, try to compile expression
+        if not self._is_symbol():
+            self._compile_expression()
+        elif not self._symbol_is(";"):
+            self._compile_expression()
+
+        # ; symbol
+        self._compile_symbol(";")
+
+        # close superstructure
+        self._dedent()
+        self._println("</returnStatement>")
 
     def _compile_if(self):
         pass
