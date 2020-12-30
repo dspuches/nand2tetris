@@ -171,31 +171,18 @@ class CompilationEngine:
         if ((not self._is_keyword()) or (not self._keyword_is(self._tkn.K_CLASS))):
             self._keyword_syntax_error("class")
 
-        # class superstructure
-        self._println("<class>")
+        self._println("<class>")                                # class superstructure
         self._indent()
 
-        # class keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # class keyword
         self._tkn.advance()
+        self._compile_identifier()                              # class name (identifier)
+        self._compile_symbol("{")                               # { symbol:
+        self._compile_class_var_dec()                           # classVarDec*
+        self._compile_subroutine()                              # subroutineDec*
+        self._compile_symbol("}", False)                        # } symbol, dont advance to next token (shouldnt be any more)
 
-        # class name (identifier)
-        self._compile_identifier()
-
-        # { symbol:
-        self._compile_symbol("{")
-
-        # classVarDec*
-        self._compile_class_var_dec()
-        
-        # subroutineDec*
-        self._compile_subroutine()
-
-        # } symbol, dont advance to next token (shouldnt be any more)
-        self._compile_symbol("}", False)
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</class>")
 
     # Compile a class variable declaration
@@ -208,28 +195,17 @@ class CompilationEngine:
         if (not self._keyword_in([self._tkn.K_STATIC, self._tkn.K_FIELD])):
             return
         
-        # classVarDec superstructure
-        self._println("<classVarDec>")
+        self._println("<classVarDec>")                          # classVarDec superstructure
         self._indent()
 
-        # ('static' | 'field')
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # ('static' | 'field')
         self._tkn.advance()
+        self._compile_type()                                    # type
+        self._compile_identifier()                              # varName
+        self._compile_varname_list()                            # (',' varname)*
+        self._compile_symbol(";")                               # ; symbol
 
-        # type
-        self._compile_type()
-
-        # varName
-        self._compile_identifier()
-
-        # (',' varname)*
-        self._compile_varname_list()
-
-        # ; symbol
-        self._compile_symbol(";")
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</classVarDec>")
 
         # process more classVarDec's (if there are any)
@@ -246,14 +222,9 @@ class CompilationEngine:
         if self._symbol_is(";"):
             return
 
-        # # , symbol
-        self._compile_symbol(",")
-        
-        # varName
-        self._compile_identifier()
-
-        # process more
-        self._compile_varname_list()
+        self._compile_symbol(",")                               # , symbol
+        self._compile_identifier()                              # varName
+        self._compile_varname_list()                            # process more
         return
 
     # Compile a subroutine
@@ -271,42 +242,23 @@ class CompilationEngine:
         if (not self._keyword_in(valid_keywords)):
             return
         
-        # subroutineDec superstructure
-        self._println("<subroutineDec>")
+        self._println("<subroutineDec>")                        # subroutineDec superstructure
         self._indent()
 
-        # ('constructor' | 'function' | 'method')
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # ('constructor' | 'function' | 'method')
         self._tkn.advance()
-
-        # ('void' | type)
-        self._compile_type(True)
-
-        # subroutineName
-        self._compile_identifier()
-
-        # ( symbol
-        self._compile_symbol("(")
-
-        # parameterList superstructure
-        self._println("<parameterList>")
+        self._compile_type(True)                                # ('void' | type)
+        self._compile_identifier()                              # subroutineName
+        self._compile_symbol("(")                               # ( symbol
+        self._println("<parameterList>")                        # parameterList superstructure
         self._indent()
-
-        # parameterList
-        self._compile_parameter_list()
-
-        # close superstructure
-        self._dedent()
+        self._compile_parameter_list()                          # parameterList
+        self._dedent()                                          # close superstructure
         self._println("</parameterList>")
+        self._compile_symbol(")")                               # ) symbol
+        self._compile_subroutine_body()                         # subroutineBody
 
-        # ) symbol
-        self._compile_symbol(")")
-
-        # subroutineBody
-        self._compile_subroutine_body()
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</subroutineDec>")
 
         # process more subroutines
@@ -321,14 +273,9 @@ class CompilationEngine:
         if (not self._is_var_type()):
             return
 
-        # type
-        self._compile_type()
-
-        # varName
-        self._compile_identifier()
-
-        # (',' type varName)*
-        self._compile_parameter()
+        self._compile_type()                                    # type
+        self._compile_identifier()                              # varName
+        self._compile_parameter()                               # (',' type varName)*
     
     # Compile zero or more parameters
     # Grammar:
@@ -340,14 +287,9 @@ class CompilationEngine:
         if self._symbol_is(")"):
             return
         
-        # , symbol
-        self._compile_symbol(",")
-
-        # type
-        self._compile_type()
-
-        # varName
-        self._compile_identifier()
+        self._compile_symbol(",")                               # , symbol
+        self._compile_type()                                    # type
+        self._compile_identifier()                              # varName
 
         # process more params
         self._compile_parameter()
@@ -357,24 +299,15 @@ class CompilationEngine:
     # Grammar:
     # '{' varDec* statements '}'
     def _compile_subroutine_body(self):
-        # superstructure
-        self._println("<subroutineBody>")
+        self._println("<subroutineBody>")                       # superstructure
         self._indent()
 
-        # { symbol
-        self._compile_symbol("{")
+        self._compile_symbol("{")                               # { symbol
+        self._compile_var_dec()                                 # varDec*
+        self._compile_statements()                              # statements
+        self._compile_symbol("}")                               # } symbol
 
-        # varDec*
-        self._compile_var_dec()
-
-        # statements
-        self._compile_statements()
-
-        # } symbol
-        self._compile_symbol("}")
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</subroutineBody>")
     
     # Compile variable declaration(s)
@@ -387,28 +320,17 @@ class CompilationEngine:
         if (not self._keyword_is(self._tkn.K_VAR)):
             return
         
-        # classVarDec superstructure
-        self._println("<varDec>")
+        self._println("<varDec>")                               # classVarDec superstructure
         self._indent()
 
-        # 'var'
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # 'var'
         self._tkn.advance()
-
-        # type
-        self._compile_type()
-
-        # varName
-        self._compile_identifier()
-
-        # (',' varname)*
-        self._compile_varname_list()
-
-        # ; symbol
-        self._compile_symbol(";")
-
-        # close superstructure
-        self._dedent()
+        self._compile_type()                                    # type
+        self._compile_identifier()                              # varName
+        self._compile_varname_list()                            # (',' varname)*
+        self._compile_symbol(";")                               # ; symbol
+        
+        self._dedent()                                          # close superstructure
         self._println("</varDec>")
 
         # process more varDec's (if there are any)
@@ -453,112 +375,71 @@ class CompilationEngine:
     # Grammar:
     # 'let' varName ('[' expression ']')? '=' expression ';'
     def _compile_let(self):
-        # let superstructure
-        self._println("<letStatement>")
+        self._println("<letStatement>")                         # let superstructure
         self._indent()
 
-        # let keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # let keyword
         self._tkn.advance()
+        self._compile_identifier()                              # varName
+        self._compile_symbol("=")                               # = symbol
+        self._compile_expression()                              # expression
+        self._compile_symbol(";")                               # ; symbol
 
-        # varName
-        self._compile_identifier()
-
-        # = symbol
-        self._compile_symbol("=")
-
-        # expression
-        self._compile_expression()
-
-        # ; symbol
-        self._compile_symbol(";")
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</letStatement>")
 
     # Compile a do statement. Assumes current token is a keyword = "do"
     # Grammar:
     # do subroutineCall ';'
     def _compile_do(self):
-        # superstructure
-        self._println("<doStatement>")
+        self._println("<doStatement>")                          # superstructure
         self._indent()
 
-        # do keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # do keyword
         self._tkn.advance()
+        self._compile_subroutine_call()                         # subroutineCall
+        self._compile_symbol(";")                               # ; symbol
 
-        # subroutineCall
-        self._compile_subroutine_call()
-
-        # ; symbol
-        self._compile_symbol(";")
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</doStatement>")
 
     # Compile the subroutineCall portion of a do statement
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        # subroutineName
-        self._compile_identifier()
-
-        # ( symbol
-        self._compile_symbol("(")
-
-        # expressionList
-        self._compile_expression_list()
-
-        # ) symbol
-        self._compile_symbol(")")
+        self._compile_identifier()                              # subroutineName
+        self._compile_symbol("(")                               # ( symbol
+        self._compile_expression_list()                         # expressionList
+        self._compile_symbol(")")                               # ) symbol
 
     # Compile a let statment. Assumes current token is a keyword = 'while'
     # Grammar:
     # 'while' '(' expression ')' '{' statements '}'
     def _compile_while(self):
-        # superstructure
-        self._println("<whileStatement>")
+        self._println("<whileStatement>")                       # superstructure
         self._indent()
-
-        # while keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        
+        self._print_xml_token("keyword", self._tkn.token())     # while keyword
         self._tkn.advance()
+        self._compile_symbol("(")                               # ( symbol
+        self._compile_expression()                              # expression
+        self._compile_symbol(")")                               # ) symbol
+        self._compile_symbol("{")                               # { symbol
+        self._compile_statements()                              # statements
+        self._compile_symbol("}")                               # } symbol
 
-        # ( symbol
-        self._compile_symbol("(")
-
-        # expression
-        self._compile_expression()
-
-        # ) symbol
-        self._compile_symbol(")")
-
-        # { symbol
-        self._compile_symbol("{")
-
-        # statements
-        self._compile_statements()
-
-        # } symbol
-        self._compile_symbol("}")
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</whileStatement>")
 
     # Compile a return statment. Assumes current token is a keyword = 'return'
     # Grammar:
     # 'return' expression? ';'
     def _compile_return(self):
-        # superstructure
-        self._println("<returnStatement>")
+        
+        self._println("<returnStatement>")                      # superstructure
         self._indent()
 
-        # return keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # return keyword
         self._tkn.advance()
 
         # if the next token is not a ; symbol, try to compile expression
@@ -567,84 +448,58 @@ class CompilationEngine:
         elif not self._symbol_is(";"):
             self._compile_expression()
 
-        # ; symbol
-        self._compile_symbol(";")
+        self._compile_symbol(";")                               # ; symbol
 
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</returnStatement>")
 
     # Compile an if/else statement. Assumes the next token is keyword == 'if'
     # Grammar:
     # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     def _compile_if(self):
-        # superstructure
-        self._println("<ifStatement>")
+        self._println("<ifStatement>")                          # superstructure
         self._indent()
 
-        # if keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # if keyword
         self._tkn.advance()
+        self._compile_symbol("(")                               # ( symbol
+        self._compile_expression()                              # expression
+        self._compile_symbol(")")                               # ) symbol
+        self._compile_symbol("{")                               # { symbol
+        self._compile_statements()                              # statements
+        self._compile_symbol("}")                               # } symbol
+        self._compile_else()                                    # ('else' '{' statements '}')?
 
-        # ( symbol
-        self._compile_symbol("(")
-
-        # expression
-        self._compile_expression()
-
-        # ) symbol
-        self._compile_symbol(")")
-
-        # { symbol
-        self._compile_symbol("{")
-
-        # statements
-        self._compile_statements()
-
-        # } symbol
-        self._compile_symbol("}")
-
-        # ('else' '{' statements '}')?
-        self._compile_else()
-
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</ifStatement>")
     
     # Compiles the else portion of an if/else block if there is one.
     # Grammar:
     # ('else' '{' statements '}')?
     def _compile_else(self):
+        # Return if the first token isnt "else"
         if not self._is_keyword():
             return
         if not self._keyword_is(self._tkn.K_ELSE):
             return
         
-        # else keyword
-        self._print_xml_token("keyword", self._tkn.token())
+        self._print_xml_token("keyword", self._tkn.token())     # else keyword
         self._tkn.advance()
-
-        # { symbol
-        self._compile_symbol("{")
-
-        # statements
-        self._compile_statements()
-
-        # } symbol
-        self._compile_symbol("}")
+        self._compile_symbol("{")                               # { symbol
+        self._compile_statements()                              # statements
+        self._compile_symbol("}")                               # } symbol
 
     # First pass of expression is to only allow an identifier as expression
     # Grammar:
     # identifier
     def _compile_expression(self):
-        # let superstructure
-        self._println("<expression>")
+        
+        self._println("<expression>")                           # let superstructure
         self._indent()
 
-        self._compile_identifier()
+        self._compile_identifier()                              # identifier
 
-        # close superstructure
-        self._dedent()
+        self._dedent()                                          # close superstructure
         self._println("</expression>")
 
     def _compile_term(self):
@@ -654,6 +509,5 @@ class CompilationEngine:
     # Grammar:
     # identifier
     def _compile_expression_list(self):
-        # identifier
-        self._compile_identifier()
+        self._compile_identifier()                              # identifier
     
