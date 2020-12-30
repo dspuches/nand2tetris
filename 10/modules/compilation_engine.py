@@ -66,6 +66,11 @@ class CompilationEngine:
     def _is_identifier(self):
         return self._token_is_type(self._tkn.T_IDENTIFIER)
 
+    # for now terms are identifiers
+    def _is_term(self):
+        return self._is_identifier()
+
+
     # Helper method to determine if current token is a variable type:
     # char, int, boolean, or identifier
     def _is_var_type(self):
@@ -304,7 +309,15 @@ class CompilationEngine:
 
         self._compile_symbol("{")                               # { symbol
         self._compile_var_dec()                                 # varDec*
+
+        self._println("<statements>")                       # superstructure
+        self._indent()
+
         self._compile_statements()                              # statements
+
+        self._dedent()                                          # close superstructure
+        self._println("</statements>")
+
         self._compile_symbol("}")                               # } symbol
 
         self._dedent()                                          # close superstructure
@@ -407,9 +420,22 @@ class CompilationEngine:
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        self._compile_identifier()                              # subroutineName
+        self._compile_identifier()                              # subroutineName | className | varName
+
+        if self._is_symbol() and self._symbol_is("."):
+            self._compile_symbol(".")                           # . symbol
+            self._compile_identifier()                          # subroutineName
+
         self._compile_symbol("(")                               # ( symbol
+
+        self._println("<expressionList>")                       # superstructure
+        self._indent()
+
         self._compile_expression_list()                         # expressionList
+
+        self._dedent()
+        self._println("</expressionList>")                      # close superstructure
+
         self._compile_symbol(")")                               # ) symbol
 
     # Compile a let statment. Assumes current token is a keyword = 'while'
@@ -425,7 +451,14 @@ class CompilationEngine:
         self._compile_expression()                              # expression
         self._compile_symbol(")")                               # ) symbol
         self._compile_symbol("{")                               # { symbol
+
+        self._println("<statements>")                       # superstructure
+        self._indent()
+
         self._compile_statements()                              # statements
+
+        self._dedent()                                          # close superstructure
+        self._println("</statements>")
         self._compile_symbol("}")                               # } symbol
 
         self._dedent()                                          # close superstructure
@@ -435,7 +468,6 @@ class CompilationEngine:
     # Grammar:
     # 'return' expression? ';'
     def _compile_return(self):
-        
         self._println("<returnStatement>")                      # superstructure
         self._indent()
 
@@ -466,7 +498,15 @@ class CompilationEngine:
         self._compile_expression()                              # expression
         self._compile_symbol(")")                               # ) symbol
         self._compile_symbol("{")                               # { symbol
+
+        self._println("<statements>")                          # superstructure
+        self._indent()
+
         self._compile_statements()                              # statements
+
+        self._dedent()                                          # close superstructure
+        self._println("</statements>")
+
         self._compile_symbol("}")                               # } symbol
         self._compile_else()                                    # ('else' '{' statements '}')?
 
@@ -486,14 +526,21 @@ class CompilationEngine:
         self._print_xml_token("keyword", self._tkn.token())     # else keyword
         self._tkn.advance()
         self._compile_symbol("{")                               # { symbol
+
+        self._println("<statements>")                           # let superstructure
+        self._indent()
+
         self._compile_statements()                              # statements
+
+        self._dedent()                                          # close superstructure
+        self._println("</statements>")
+
         self._compile_symbol("}")                               # } symbol
 
     # First pass of expression is to only allow an identifier as expression
     # Grammar:
     # identifier
     def _compile_expression(self):
-        
         self._println("<expression>")                           # let superstructure
         self._indent()
 
@@ -507,7 +554,20 @@ class CompilationEngine:
 
     # First pass of expressionList is to only allow an identifier as expressionList
     # Grammar:
-    # identifier
+    # (expression (',' expression)*)?
     def _compile_expression_list(self):
-        self._compile_identifier()                              # identifier
+        if self._is_term():
+            # term means first in list
+            self._compile_expression()
+        elif self._is_symbol() and self._symbol_is(","):
+            # comma means additional expression
+            self._compile_symbol(",")
+            self._compile_expression()
+        else:
+            # no more to process
+            return
+        
+        # process more expressions
+        self._compile_expression_list()
+        return
     
