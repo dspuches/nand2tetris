@@ -79,7 +79,26 @@ class CompilationEngine:
     # for now terms are identifiers
     def _is_term(self):
         return self._is_identifier()
-
+    
+    # Helper method to determine if token is an op
+    # Valid ops: + - * / & | < > =
+    def _is_op(self):
+        is_op = False
+        valid_ops = [
+            '+',
+            '-',
+            '*',
+            '/',
+            '&',
+            '|',
+            '<',
+            '>',
+            '=',
+        ]
+        if self._is_symbol():
+            if self._tkn.symbol() in valid_ops:
+                is_op = True
+        return is_op
 
     # Helper method to determine if current token is a variable type:
     # char, int, boolean, or identifier
@@ -374,6 +393,10 @@ class CompilationEngine:
         self._print_xml_token("keyword", self._tkn.token())     # let keyword
         self._tkn.advance()
         self._compile_identifier()                              # varName
+        if self._is_symbol() and self._symbol_is("["):
+            self._compile_symbol("[")                           # [ symbol
+            self._compile_expression()                          # expression
+            self._compile_symbol("]")                           # ] symbol
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
@@ -476,14 +499,32 @@ class CompilationEngine:
         self._close_superstructure("statements")                # close superstructure
         self._compile_symbol("}")                               # } symbol
 
-    # First pass of expression is to only allow an identifier as expression
+    # Compile expression
     # Grammar:
-    # identifier
+    # term (op term)*
     def _compile_expression(self):
         self._open_superstructure("expression")                 # superstructure
-        self._compile_term()                              # identifier
+        self._compile_term()                                    # term
+        self._compile_op_term()                                 # (op term)*
         self._close_superstructure("expression")                # close superstructure
 
+    # Compile zero or more op terms
+    # Grammar:
+    # (op term)*
+    def _compile_op_term(self):
+        if self._is_op():
+            # if token is an op, process op token
+            self._compile_symbol(self._tkn.symbol())
+            self._compile_term() 
+        else:
+            return
+        
+        # recursively process more op term pairs
+        self._compile_op_term()
+
+    # Compile term
+    # Grammar:
+    # identifier
     def _compile_term(self):
         self._open_superstructure("term")                       # superstructure
         self._compile_identifier()                              # identifier
