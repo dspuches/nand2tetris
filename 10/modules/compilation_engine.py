@@ -495,6 +495,9 @@ class CompilationEngine:
         # { symbol
         self._compile_symbol("{")
 
+        # statements
+        self._compile_statements()
+
         # } symbol
         self._compile_symbol("}")
 
