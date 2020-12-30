@@ -426,6 +426,7 @@ class CompilationEngine:
             self._tkn.K_LET,
             self._tkn.K_WHILE,
             self._tkn.K_RETURN,
+            self._tkn.K_IF,
         ]
         if (not self._is_keyword()):
             return
@@ -440,6 +441,8 @@ class CompilationEngine:
             self._compile_while()
         elif (keyword == self._tkn.K_RETURN):
             self._compile_return()
+        elif (keyword == self._tkn.K_IF):
+            self._compile_if()
         
         self._compile_statements()
 
@@ -533,8 +536,64 @@ class CompilationEngine:
         self._dedent()
         self._println("</returnStatement>")
 
+    # Compile an if/else statement. Assumes the next token is keyword == 'if'
+    # Grammar:
+    # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     def _compile_if(self):
-        pass
+        # superstructure
+        self._println("<ifStatement>")
+        self._indent()
+
+        # if keyword
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # ( symbol
+        self._compile_symbol("(")
+
+        # expression
+        self._compile_expression()
+
+        # ) symbol
+        self._compile_symbol(")")
+
+        # { symbol
+        self._compile_symbol("{")
+
+        # statements
+        self._compile_statements()
+
+        # } symbol
+        self._compile_symbol("}")
+
+        # ('else' '{' statements '}')?
+        self._compile_else()
+
+        # close superstructure
+        self._dedent()
+        self._println("</ifStatement>")
+    
+    # Compiles the else portion of an if/else block if there is one.
+    # Grammar:
+    # ('else' '{' statements '}')?
+    def _compile_else(self):
+        if not self._is_keyword():
+            return
+        if not self._keyword_is(self._tkn.K_ELSE):
+            return
+        
+        # else keyword
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # { symbol
+        self._compile_symbol("{")
+
+        # statements
+        self._compile_statements()
+
+        # } symbol
+        self._compile_symbol("}")
 
     # First pass of expression is to only allow an identifier as expression
     # Grammar:
