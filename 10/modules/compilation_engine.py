@@ -422,7 +422,10 @@ class CompilationEngine:
     # statement grammar:
     # letStatement | ifStatement | whileStatement | doStatement | returnStatement
     def _compile_statements(self):
-        valid_keywords = [self._tkn.K_LET]
+        valid_keywords = [
+            self._tkn.K_LET,
+            self._tkn.K_WHILE,
+        ]
         if (not self._is_keyword()):
             return
         if (not self._keyword_in(valid_keywords)):
@@ -432,6 +435,8 @@ class CompilationEngine:
 
         if (keyword == self._tkn.K_LET):
             self._compile_let()
+        elif (keyword == self._tkn.K_WHILE):
+            self._compile_while()
         
         self._compile_statements()
 
@@ -466,8 +471,36 @@ class CompilationEngine:
     def _compile_do(self):
         pass
 
+    # Compile a let statment. Assumes current token is a keyword = 'while'
+    # Grammar:
+    # 'while' '(' expression ')' '{' statements '}'
     def _compile_while(self):
-        pass
+        # superstructure
+        self._println("<whileStatement>")
+        self._indent()
+
+        # while keyword
+        self._print_xml_token("keyword", self._tkn.token())
+        self._tkn.advance()
+
+        # ( symbol
+        self._compile_symbol("(")
+
+        # expression
+        self._compile_expression()
+
+        # ) symbol
+        self._compile_symbol(")")
+
+        # { symbol
+        self._compile_symbol("{")
+
+        # } symbol
+        self._compile_symbol("}")
+
+        # close superstructure
+        self._dedent()
+        self._println("</whileStatement>")
 
     def _compile_return(self):
         pass
@@ -479,7 +512,15 @@ class CompilationEngine:
     # Grammar:
     # identifier
     def _compile_expression(self):
+        # let superstructure
+        self._println("<expression>")
+        self._indent()
+
         self._compile_identifier()
+
+        # close superstructure
+        self._dedent()
+        self._println("</expression>")
 
     def _compile_term(self):
         pass
