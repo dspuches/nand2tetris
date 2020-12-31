@@ -218,7 +218,7 @@ class CompilationEngine:
         self._print_xml_token("identifier", self._tkn.token())
         self._tkn.advance()
     
-    # Helper method to compile a symbol
+    # Compile a symbol
     # Checks to see if current token is a symbol that matches the provided symbol, if not raises syntax error
     # Otherwise, it compiles the symbol
     def _compile_symbol(self, symbol, advance=True):
@@ -228,7 +228,7 @@ class CompilationEngine:
         if (advance):
             self._tkn.advance()
     
-    # Helper method to compile a type token
+    # Compile a type token
     # Grammar:
     # 'int' | 'char' | 'boolean' | className
     def _compile_type(self, include_void=False):
@@ -253,20 +253,6 @@ class CompilationEngine:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
             lower_keywords.append("className")
             self._type_syntax_error(lower_keywords)
-
-    # Helper method to compile an integerConstant
-    def _compile_int_constant(self):
-        if (not self._is_int_constant()):
-            self._integer_syntax_error()
-        self._print_xml_token("integerConstant", self._tkn.token())
-        self._tkn.advance()
-
-    # Helper method to compile a stringConstant
-    def _compile_string_constant(self):
-        if (not self._is_string_constant()):
-            self._string_syntax_error()
-        self._print_xml_token("stringConstant", self._tkn.string_val())
-        self._tkn.advance()
 
     # Compile a class
     # Grammar:
@@ -612,22 +598,33 @@ class CompilationEngine:
             # varName [ expression ]
         
         if self._is_int_constant():
-            self._compile_int_constant()
+            self._compile_int_constant()                        # integerConstant
         elif self._is_string_constant():
-            self._compile_string_constant()
+            self._compile_string_constant()                     # stringConstant
         elif self._is_identifier():
-            self._compile_identifier()
+            self._compile_identifier()                          #TEMPORARY FOR TESTING
         else:
-            self._expression_syntax_error()
+            self._expression_syntax_error()                     # No valid term matches found
 
-
-        #TEMPORARY FOR TESTING
-        #self._compile_identifier()                              # identifier
         self._close_superstructure("term")                      # close superstructure
 
-    
+    # Compile an integerConstant
+    # Grammar:
+    # decimal number in range of 0..32767
+    def _compile_int_constant(self):
+        if (not self._is_int_constant()):
+            self._integer_syntax_error()
+        self._print_xml_token("integerConstant", self._tkn.token())
+        self._tkn.advance()
 
-    
+    # Compile a stringConstant
+    # Grammar:
+    # '"' sequence of unicode chars not including double quote or newline '"'
+    def _compile_string_constant(self):
+        if (not self._is_string_constant()):
+            self._string_syntax_error()
+        self._print_xml_token("stringConstant", self._tkn.string_val())
+        self._tkn.advance()
 
     def _compile_keyword_constant(self):
         pass
