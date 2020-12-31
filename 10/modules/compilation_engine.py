@@ -193,14 +193,21 @@ class CompilationEngine:
     def _identifier_syntax_error(self):
         raise SyntaxError(self._tkn, "Expected identifier, found <{}> instead".format(self._tkn.token()))
 
+    # Helper method to raise a syntax error for an invalid type
     def _type_syntax_error(self, valid_types):
         raise SyntaxError(self._tkn, "Expected type {}, found <{}> instead".format(valid_types, self._tkn.token()))
 
+    # Helper method to raise a syntax error for an unexpected token in an expression
     def _expression_syntax_error(self):
         raise SyntaxError(self._tkn, "Unexpected token encountered in expression: <{}>".format(self._tkn.token()))
 
+    # Helper method to raise syntax error for unexpected token when processing an integer constant
     def _integer_syntax_error(self):
         raise SyntaxError(self._tkn, "Expected integer constant, found <{}> instead".format(self._tkn.token()))
+
+    # Helper method to raise syntax error for unexpected token when processing an integer constant
+    def _string_syntax_error(self):
+        raise SyntaxError(self._tkn, "Expected string constant, found <{}> instead".format(self._tkn.token()))
 
     # Helper method to compile an identifier
     # Checks to see if current token is an identifier, if not raises syntax error
@@ -252,6 +259,13 @@ class CompilationEngine:
         if (not self._is_int_constant()):
             self._integer_syntax_error()
         self._print_xml_token("integerConstant", self._tkn.token())
+        self._tkn.advance()
+
+    # Helper method to compile a stringConstant
+    def _compile_string_constant(self):
+        if (not self._is_string_constant()):
+            self._string_syntax_error()
+        self._print_xml_token("stringConstant", self._tkn.string_val())
         self._tkn.advance()
 
     # Compile a class
@@ -599,6 +613,8 @@ class CompilationEngine:
         
         if self._is_int_constant():
             self._compile_int_constant()
+        elif self._is_string_constant():
+            self._compile_string_constant()
         elif self._is_identifier():
             self._compile_identifier()
         else:
@@ -611,8 +627,7 @@ class CompilationEngine:
 
     
 
-    def _compile_string_constant(self):
-        pass
+    
 
     def _compile_keyword_constant(self):
         pass
