@@ -86,10 +86,10 @@ class JackTokenizer():
     K_ELSE = "ELSE"
     K_WHILE = "WHILE"
     K_RETURN = "RETURN"
-    # K_TRUE = "TRUE"
-    # K_FALSE = "FALSE"
-    # K_NULL = "NULL"
-    # K_THIS = "THIS"
+    K_TRUE = "TRUE"
+    K_FALSE = "FALSE"
+    K_NULL = "NULL"
+    K_THIS = "THIS"
 
     def __init__(self, in_f):
         self._fd = in_f                             # file descriptor

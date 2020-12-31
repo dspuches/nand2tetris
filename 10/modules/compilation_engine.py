@@ -75,10 +75,54 @@ class CompilationEngine:
     # Helper method to determine if current token is an identifier
     def _is_identifier(self):
         return self._token_is_type(self._tkn.T_IDENTIFIER)
+    
+    # Helper method to determine if current token is a stringConstant
+    def _is_string_constant(self):
+        return self._token_is_type(self._tkn.T_STRING_CONSTANT)
 
-    # for now terms are identifiers
-    def _is_term(self):
-        return self._is_identifier()
+    # Helper method to determine if current token is an integerConstant
+    def _is_int_constant(self):
+        return self._token_is_type(self._tkn.T_INT_CONSTANT)
+    
+    # Helper method to determine if current token is a keywordConstant
+    def _is_keyword_constant(self):
+        valid_keywords = [
+            self._tkn.K_TRUE,
+            self._tkn.K_FALSE,
+            self._tkn.K_NULL,
+            self._tkn.K_THIS,
+        ]
+        if self._is_keyword() and (self._tkn.keyword() in valid_keywords):
+            return True
+        else:
+            return False
+        
+    # Helper method to determine if current token is a unaryOp
+    # '-' | '~'
+    def _is_unary_op(self):
+        is_op = False
+        if self._is_symbol():
+            if self._symbol_is("-") or self._symbol_is("~"):
+                is_op = True
+        return is_op
+
+    # Helper method to determine if the current token can be considered the start of a term
+    # Return true if:
+    # integerConstant
+    # stringConstant
+    # keywordConstant - 'true' | 'false' | 'null' | 'this'
+    # identifier - varName
+    # unaryOp - '-' | '~'
+    # '('
+    def _is_term_start(self):
+        is_term = False
+
+        if self._is_identifier() or self._is_int_constant() or self._is_keyword_constant() or self._is_string_constant():
+            is_term = True
+        elif self._is_symbol() and self._symbol_is("("):
+            is_term = True
+        
+        return is_term
     
     # Helper method to determine if token is an op
     # Valid ops: + - * / & | < > =
@@ -152,6 +196,12 @@ class CompilationEngine:
     def _type_syntax_error(self, valid_types):
         raise SyntaxError(self._tkn, "Expected type {}, found <{}> instead".format(valid_types, self._tkn.token()))
 
+    def _expression_syntax_error(self):
+        raise SyntaxError(self._tkn, "Unexpected token encountered in expression: <{}>".format(self._tkn.token()))
+
+    def _integer_syntax_error(self):
+        raise SyntaxError(self._tkn, "Expected integer constant, found <{}> instead".format(self._tkn.token()))
+
     # Helper method to compile an identifier
     # Checks to see if current token is an identifier, if not raises syntax error
     # Otherwise, it compiles the ident token
@@ -196,6 +246,13 @@ class CompilationEngine:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
             lower_keywords.append("className")
             self._type_syntax_error(lower_keywords)
+
+    # Helper method to compile an integerConstant
+    def _compile_int_constant(self):
+        if (not self._is_int_constant()):
+            self._integer_syntax_error()
+        self._print_xml_token("integerConstant", self._tkn.token())
+        self._tkn.advance()
 
     # Compile a class
     # Grammar:
@@ -393,7 +450,7 @@ class CompilationEngine:
         self._print_xml_token("keyword", self._tkn.token())     # let keyword
         self._tkn.advance()
         self._compile_identifier()                              # varName
-        if self._is_symbol() and self._symbol_is("["):
+        if self._is_symbol() and self._symbol_is("["):          # ('[' expression ']')?
             self._compile_symbol("[")                           # [ symbol
             self._compile_expression()                          # expression
             self._compile_symbol("]")                           # ] symbol
@@ -524,18 +581,57 @@ class CompilationEngine:
 
     # Compile term
     # Grammar:
-    # identifier
+    # integerConstant | stringConstant | keywordConstant | varName |
+    # varName '[' expression ']' | subroutineCall | '(' expression ')'
+    # unaryOp term
     def _compile_term(self):
         self._open_superstructure("term")                       # superstructure
-        self._compile_identifier()                              # identifier
+
+        # if integerConstant
+        # if stringConstant
+        # if keywordConstant
+        # if expressionBlock
+        # if unaryOp
+        # if identifier
+            # subroutineCall
+            # varName
+            # varName [ expression ]
+        
+        if self._is_int_constant():
+            self._compile_int_constant()
+        elif self._is_identifier():
+            self._compile_identifier()
+        else:
+            self._expression_syntax_error()
+
+
+        #TEMPORARY FOR TESTING
+        #self._compile_identifier()                              # identifier
         self._close_superstructure("term")                      # close superstructure
+
+    
+
+    def _compile_string_constant(self):
+        pass
+
+    def _compile_keyword_constant(self):
+        pass
+
+    def _compile_var_name(self):
+        pass
+
+    def _compile_expression_block(self):
+        pass
+
+    def _compile_unary_op(self):
+        pass
 
     # First pass of expressionList is to only allow an identifier as expressionList
     # Grammar:
     # (expression (',' expression)*)?
     def _compile_expression_list(self):
-        if self._is_term():
-            # term means first in list
+        if self._is_term_start():
+            # determine if the current token is the start of a term
             self._compile_expression()
         elif self._is_symbol() and self._symbol_is(","):
             # comma means additional expression
