@@ -57,7 +57,6 @@ def main(input):
         # here for each file is compileClass(). All other functions should be invoked recursively
         # The output generated should be a single XML file
 
-
         for infile in infiles:
             outfile_name = re.sub("\.jack$", ".xml", infiles[0])
             outfile = os.path.join(outdir, outfile_name)

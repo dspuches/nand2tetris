@@ -224,7 +224,16 @@ class CompilationEngine:
     def _compile_symbol(self, symbol, advance=True):
         if ((not self._is_symbol()) or (not self._symbol_is(symbol))):
             self._symbol_syntax_error(symbol)
-        self._print_xml_token("symbol", self._tkn.token())
+        
+        token = self._tkn.token()
+        if (token == "<"):
+            token = "&lt;"
+        elif (token == ">"):
+            token = "&gt;"
+        elif (token == "&"):
+            token = "&amp;"
+            
+        self._print_xml_token("symbol", token)
         if (advance):
             self._tkn.advance()
     
@@ -450,10 +459,7 @@ class CompilationEngine:
         self._print_xml_token("keyword", self._tkn.token())     # let keyword
         self._tkn.advance()
         self._compile_identifier()                              # varName
-        if self._is_symbol() and self._symbol_is("["):          # ('[' expression ']')?
-            self._compile_symbol("[")                           # [ symbol
-            self._compile_expression()                          # expression
-            self._compile_symbol("]")                           # ] symbol
+        self._compile_array_expression()                        # ('[' expression ']')?
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
@@ -466,6 +472,7 @@ class CompilationEngine:
         self._open_superstructure("doStatement")                # superstructure
         self._print_xml_token("keyword", self._tkn.token())     # do keyword
         self._tkn.advance()
+        self._compile_identifier()                              # subroutineName | className | varName
         self._compile_subroutine_call()                         # subroutineCall
         self._compile_symbol(";")                               # ; symbol
         self._close_superstructure("doStatement")               # close superstructure
@@ -474,7 +481,7 @@ class CompilationEngine:
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        self._compile_identifier()                              # subroutineName | className | varName
+        #self._compile_identifier()                              # subroutineName | className | varName
 
         if self._is_symbol() and self._symbol_is("."):
             self._compile_symbol(".")                           # . symbol
@@ -586,16 +593,6 @@ class CompilationEngine:
     # unaryOp term
     def _compile_term(self):
         self._open_superstructure("term")                       # superstructure
-
-        # if integerConstant
-        # if stringConstant
-        # if keywordConstant
-        # if expressionBlock
-        # if unaryOp
-        # if identifier
-            # subroutineCall
-            # varName
-            # varName [ expression ]
         
         if self._is_int_constant():
             self._compile_int_constant()                        # integerConstant
@@ -608,7 +605,11 @@ class CompilationEngine:
         elif self._is_symbol() and self._symbol_is("("):
             self._compile_expression_block()                    # '(' expression ')'
         elif self._is_identifier():
-            self._compile_identifier()                          #TEMPORARY FOR TESTING
+            self._compile_identifier()
+            if self._is_symbol() and (self._symbol_is("(") or self._symbol_is(".")):
+                self._compile_subroutine_call()
+            else:
+                self._compile_array_expression()                # varName | varName '[' expression ']'
         else:
             self._expression_syntax_error()                     # No valid term matches found
 
@@ -639,8 +640,14 @@ class CompilationEngine:
         self._print_xml_token("keyword", self._tkn.token()) # keywordConstant
         self._tkn.advance()
 
-    def _compile_var_name(self):
-        pass
+    # Compile an optional array expression
+    # Grammar:
+    # '[' expression ']'
+    def _compile_array_expression(self):
+        if self._is_symbol() and self._symbol_is("["):          # ('[' expression ']')?
+            self._compile_symbol("[")                           # [ symbol
+            self._compile_expression()                          # expression
+            self._compile_symbol("]")                           # ] symbol
 
     # Compile an expression block
     # Grammar:

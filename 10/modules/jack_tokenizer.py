@@ -124,7 +124,7 @@ class JackTokenizer():
         self._start = self._curr
 
     # peek at next char (curr + 1)
-    def _peek(self):
+    def peek(self):
         if (self._curr + 1 < self._line_length):
             return self._line[self._curr + 1]
         else:
@@ -172,10 +172,10 @@ class JackTokenizer():
             # if start == curr, the symbol is the token...unless its a comment
             if (self._line[self._curr] == "/"):
                 # check if it is a comment and skip them if it is
-                if (self._peek() == "/"):
+                if (self.peek() == "/"):
                     self._handle_singleline_comment()
                     return scanning, token
-                elif (self._peek() == "*"):
+                elif (self.peek() == "*"):
                     self._handle_multiline_comment()
                     return scanning, token
             
@@ -210,7 +210,7 @@ class JackTokenizer():
                 
             elif (self._line[self._curr] == "*"):
                 # if we find a *, check if its the end of comment
-                if (self._peek() == "/"):
+                if (self.peek() == "/"):
                     # end of comment
                     scanning = False
                     self._bump()
