@@ -605,6 +605,8 @@ class CompilationEngine:
             self._compile_keyword_constant()                    # keywordConstant
         elif self._is_unary_op():
             self._compile_unary_op()                            # unaryOp
+        elif self._is_symbol() and self._symbol_is("("):
+            self._compile_expression_block()                    # '(' expression ')'
         elif self._is_identifier():
             self._compile_identifier()                          #TEMPORARY FOR TESTING
         else:
@@ -640,8 +642,13 @@ class CompilationEngine:
     def _compile_var_name(self):
         pass
 
+    # Compile an expression block
+    # Grammar:
+    # '(' expression ')'
     def _compile_expression_block(self):
-        pass
+        self._compile_symbol("(")
+        self._compile_expression()
+        self._compile_symbol(")")
 
     # Compile a unaryOp
     # Grammar:
