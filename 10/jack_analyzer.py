@@ -58,7 +58,7 @@ def main(input):
         # The output generated should be a single XML file
 
         for infile in infiles:
-            outfile_name = re.sub("\.jack$", ".xml", infiles[0])
+            outfile_name = re.sub("\.jack$", ".xml", infile)
             outfile = os.path.join(outdir, outfile_name)
 
             with open(outfile, "w") as out_f:
