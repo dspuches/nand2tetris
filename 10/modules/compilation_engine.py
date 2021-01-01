@@ -601,6 +601,10 @@ class CompilationEngine:
             self._compile_int_constant()                        # integerConstant
         elif self._is_string_constant():
             self._compile_string_constant()                     # stringConstant
+        elif self._is_keyword_constant():
+            self._compile_keyword_constant()                    # keywordConstant
+        elif self._is_unary_op():
+            self._compile_unary_op()                            # unaryOp
         elif self._is_identifier():
             self._compile_identifier()                          #TEMPORARY FOR TESTING
         else:
@@ -626,8 +630,12 @@ class CompilationEngine:
         self._print_xml_token("stringConstant", self._tkn.string_val())
         self._tkn.advance()
 
+    # Compile a keywordConstant
+    # Grammar:
+    # 'true' | 'false' | 'null' | 'this'
     def _compile_keyword_constant(self):
-        pass
+        self._print_xml_token("keyword", self._tkn.token()) # keywordConstant
+        self._tkn.advance()
 
     def _compile_var_name(self):
         pass
@@ -635,8 +643,15 @@ class CompilationEngine:
     def _compile_expression_block(self):
         pass
 
+    # Compile a unaryOp
+    # Grammar:
+    # unaryOp term
     def _compile_unary_op(self):
-        pass
+        if self._symbol_is("-"):
+            self._compile_symbol("-")
+        else:
+            self._compile_symbol("~")
+        self._compile_term()
 
     # First pass of expressionList is to only allow an identifier as expressionList
     # Grammar:
