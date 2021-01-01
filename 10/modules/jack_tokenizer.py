@@ -262,6 +262,7 @@ class JackTokenizer():
 
         return token
 
+    # return the raw token
     def token(self):
         return self._curr_token
 
@@ -309,37 +310,51 @@ class JackTokenizer():
 
         return t_type
 
+    # Return the keyword to upper case
+    # This should only get called if the token is a keyword (token_type == T_KEYWORD)
     def keyword(self):
         if (self.token_type() is not self.T_KEYWORD):
             raise TokenizerError("Token type must be {} to call the keyword() method".format(self.T_KEYWORD))
         return self._curr_token.upper()
 
+    # Return the symbol
+    # This should only get called if the token is a symbol (token_type == T_SYMBOL)
     def symbol(self):
         if (self.token_type() is not self.T_SYMBOL):
             raise TokenizerError("Token type must be {} to call the symbol() method".format(self.T_SYMBOL))
         return self._curr_token
     
+    # Return the identifier
+    # This should only get called if the token is a identifier (token_type == T_IDENTIFIER)
     def identifier(self):
         if (self.token_type() is not self.T_IDENTIFIER):
             raise TokenizerError("Token type must be {} to call the identifier() method".format(self.T_IDENTIFIER))
         return self._curr_token
 
+    # Return the integer value
+    # This should only get called if the token is a integer (token_type == T_INT_CONSTANT)
     def int_val(self):
         if (self.token_type() is not self.T_INT_CONSTANT):
             raise TokenizerError("Token type must be {} to call the int_val() method".format(self.T_INT_CONSTANT))
         return self._curr_token
 
+    
+    # Return the string value without double quotes
+    # This should only get called if the token is a stribg (token_type == T_STRING_CONSTANT)
     def string_val(self):
         if (self.token_type() is not self.T_STRING_CONSTANT):
             raise TokenizerError("Token type must be {} to call the string_val() method".format(self.T_STRING_CONSTANT))
         return self._curr_token.strip('"')
     
+    # generate token xml top level tag
     def token_xml_header(self):
         return "<tokens>\n"
 
+    # close token top level tag
     def token_xml_trailer(self):
         return "</tokens>\n"
 
+    # helper to generate an xml token
     def token_xml(self):
         token = self._curr_token.strip('"')
         if (self.token_type() == self.T_SYMBOL):
