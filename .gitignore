@@ -26,7 +26,14 @@ demo/
 10/ExpressionLessSquare
 10/*.jack
 10/*.xml
-11/
+11/*.xml
+11/*.jack
+11/Average
+11/ComplexArrays
+11/ConvertTOBin
+11/Pong
+11/Seven
+11/Square
 12/
 13/
 .vscode/
