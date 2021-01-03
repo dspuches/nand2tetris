@@ -4,11 +4,6 @@ from errors.token_error import TokenError
 
 
 class JackTokenizer():
-    """Tokenizer class responsible for parsing jack source files into tokens
-
-    Attributes:
-        _infile -- jack input as python list
-    """
     SYMBOLS = [
         "{",
         "}",
@@ -99,7 +94,7 @@ class JackTokenizer():
         self._start = 0                             # the index of the start of the token in current line
         self._curr = 0                              # the current index in the current line
         self._eof = False
-        self._next_token = self._get_next_token()  # attempt to get the next token
+        self._next_token = self._get_next_token()   # attempt to get the next token
         self._curr_token = None
 
     # read a line from the stream, increase line count, reset indices

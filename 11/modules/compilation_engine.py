@@ -2,14 +2,6 @@ from modules.jack_tokenizer import JackTokenizer
 from errors.syntax_error import SyntaxError
 
 class CompilationEngine:
-    """Tokenizer class responsible for parsing jack source files into tokens
-
-    Attributes:
-        _fd -- output file descriptor
-        _tkn -- tokenizer
-        _indents -- track the number of indents to prepend before xml output
-    """
-
     # Create a new tokenizer for the specified input stream
     # Make sure the tokenizer stream has at least one token
     # Advance to the first token
