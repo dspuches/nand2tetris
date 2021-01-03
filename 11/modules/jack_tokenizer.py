@@ -1,6 +1,6 @@
 import re
-from .tokenizer_error import TokenizerError
-from .token_error import TokenError
+from errors.tokenizer_error import TokenizerError
+from errors.token_error import TokenError
 
 
 class JackTokenizer():

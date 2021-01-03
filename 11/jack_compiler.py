@@ -4,7 +4,7 @@ import os
 
 from modules.jack_tokenizer import JackTokenizer
 from modules.compilation_engine import CompilationEngine
-from modules.syntax_error import SyntaxError
+from errors.syntax_error import SyntaxError
 
 def main(input):
     infiles = []

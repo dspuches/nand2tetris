@@ -1,5 +1,5 @@
 from modules.jack_tokenizer import JackTokenizer
-from modules.syntax_error import SyntaxError
+from errors.syntax_error import SyntaxError
 
 class CompilationEngine:
     """Tokenizer class responsible for parsing jack source files into tokens
