@@ -1,4 +1,5 @@
 from modules.jack_tokenizer import JackTokenizer
+from modules.symbol_table import SymbolTable
 from errors.syntax_error import SyntaxError
 
 class CompilationEngine:
@@ -10,6 +11,7 @@ class CompilationEngine:
     def __init__(self, in_f, out_f):
         self._fd = out_f                            # output file handle
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
+        self._symbol_table = SymbolTable()
         self._indents = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
@@ -207,8 +209,10 @@ class CompilationEngine:
     def _compile_identifier(self):
         if (not self._is_identifier()):
             self._identifier_syntax_error()
-        self._print_xml_token("identifier", self._tkn.token())
+        identifier = self._tkn.token()
+        self._print_xml_token("identifier", identifier)
         self._tkn.advance()
+        return identifier
     
     # Compile a symbol
     # Checks to see if current token is a symbol that matches the provided symbol, if not raises syntax error
@@ -234,6 +238,7 @@ class CompilationEngine:
     # 'int' | 'char' | 'boolean' | className
     def _compile_type(self, include_void=False):
         valid_keywords = [self._tkn.K_INT, self._tkn.K_CHAR, self._tkn.K_BOOLEAN]
+        type = self._tkn.token()
         if include_void:
             valid_keywords.append(self._tkn.K_VOID)
         if self._is_keyword():
@@ -254,6 +259,7 @@ class CompilationEngine:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
             lower_keywords.append("className")
             self._type_syntax_error(lower_keywords)
+        return type
 
     # Compile a class
     # Grammar:
@@ -284,11 +290,13 @@ class CompilationEngine:
             return
         
         self._open_superstructure("classVarDec")                # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # ('static' | 'field')
+        kind = self._tkn.token()
+        self._print_xml_token("keyword", kind)                  # ('static' | 'field')
         self._tkn.advance()
-        self._compile_type()                                    # type
-        self._compile_identifier()                              # varName
-        self._compile_varname_list()                            # (',' varname)*
+        type = self._compile_type()                             # type
+        name = self._compile_identifier()                       # varName
+        self._symbol_table.define(name, type, kind)
+        self._compile_varname_list(type, kind)                  # (',' varname)*
         self._compile_symbol(";")                               # ; symbol
         self._close_superstructure("classVarDec")               # close superstructure
 
@@ -299,7 +307,7 @@ class CompilationEngine:
     # Compile a list of variable names
     # Grammar:
     # (',' varName)*
-    def _compile_varname_list(self):
+    def _compile_varname_list(self, type, kind):
         # return if there are no more variables to process
         if not self._is_symbol():
             return
@@ -307,8 +315,9 @@ class CompilationEngine:
             return
 
         self._compile_symbol(",")                               # , symbol
-        self._compile_identifier()                              # varName
-        self._compile_varname_list()                            # process more
+        name = self._compile_identifier()                       # varName
+        self._symbol_table.define(name, type, kind)
+        self._compile_varname_list(type, kind)                  # process more
         return
 
     # Compile a subroutine
@@ -326,6 +335,7 @@ class CompilationEngine:
         if (not self._keyword_in(valid_keywords)):
             return
 
+        self._symbol_table.start_method()                       # reset method scope
         self._open_superstructure("subroutineDec")              # superstructure
         self._print_xml_token("keyword", self._tkn.token())     # ('constructor' | 'function' | 'method')
         self._tkn.advance()
@@ -351,8 +361,10 @@ class CompilationEngine:
         if (not self._is_var_type()):
             return
 
-        self._compile_type()                                    # type
-        self._compile_identifier()                              # varName
+        kind = SymbolTable.K_ARG
+        type = self._compile_type()                             # type
+        name = self._compile_identifier()                       # varName
+        self._symbol_table.define(name, type, kind)
         self._compile_parameter()                               # (',' type varName)*
     
     # Compile zero or more parameters
@@ -365,9 +377,11 @@ class CompilationEngine:
         if self._symbol_is(")"):
             return
         
+        kind = SymbolTable.K_ARG
         self._compile_symbol(",")                               # , symbol
-        self._compile_type()                                    # type
-        self._compile_identifier()                              # varName
+        type = self._compile_type()                             # type
+        name = self._compile_identifier()                       # varName
+        self._symbol_table.define(name, type, kind)
 
         # process more params
         self._compile_parameter()
@@ -397,13 +411,15 @@ class CompilationEngine:
             return
         
         self._open_superstructure("varDec")                     # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # 'var'
+        kind = self._tkn.token()
+        self._print_xml_token("keyword", kind)                  # 'var'
         self._tkn.advance()
-        self._compile_type()                                    # type
-        self._compile_identifier()                              # varName
-        self._compile_varname_list()                            # (',' varname)*
+        type = self._compile_type()                             # type
+        name = self._compile_identifier()                       # varName
+        self._symbol_table.define(name, type, kind)
+        self._compile_varname_list(type, kind)                  # (',' varname)*
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("varDec")                # close superstructure
+        self._close_superstructure("varDec")                    # close superstructure
 
         # process more varDec's (if there are any)
         self._compile_var_dec()
@@ -473,7 +489,7 @@ class CompilationEngine:
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        #self._compile_identifier()                              # subroutineName | className | varName
+        #self._compile_identifier()                             # subroutineName | className | varName
 
         if self._is_symbol() and self._symbol_is("."):
             self._compile_symbol(".")                           # . symbol

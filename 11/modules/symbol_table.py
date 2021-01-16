@@ -43,6 +43,8 @@ class SymbolTable:
                 self._arg_count += 1
             else:
                 self._var_count += 1
+        else:
+            raise SymbolTableError("Attemting to define a symbol that is already defined: <{}>".format(name))
 
     # helper to define a class scoped symbol
     def _class_define(self, name, type, kind):
@@ -53,6 +55,8 @@ class SymbolTable:
                 self._static_count += 1
             else:
                 self._field_count += 1
+        else:
+            raise SymbolTableError("Attemting to define a symbol that is already defined: <{}>".format(name))
 
     # return the number of variable definitons of the given kind
     def var_count(self, kind):
