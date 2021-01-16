@@ -1,5 +1,5 @@
-class TokenizerError(Exception):
-    """Exception raised for errors tokenizing a line.
+class VmWriterError(Exception):
+    """Exception raised for errors related to the VmWriter module.
 
     Attributes:
         message -- explanation of the error
