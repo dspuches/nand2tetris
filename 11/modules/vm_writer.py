@@ -71,7 +71,7 @@ class VmWriter:
         self._fd.write("call {} {}".format(name, num_args))
 
     def write_function(self, name, num_locals):
-         self._fd.write("function {} {}".format(name, num_args))
+         self._fd.write("function {} {}".format(name, num_locals))
 
     def write_return(self):
          self._fd.write("return")
