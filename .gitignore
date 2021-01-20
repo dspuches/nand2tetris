@@ -28,6 +28,7 @@ demo/
 10/*.xml
 11/*.xml
 11/*.jack
+11/*.vm
 11/Average
 11/ComplexArrays
 11/ConvertTOBin
