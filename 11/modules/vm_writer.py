@@ -44,34 +44,37 @@ class VmWriter:
             int(index)
         except ValueError:
             raise VmWriterError("Invalid index: <{}>".format(index))
+    
+    def _println(self, line):
+        self._fd.write("{}\n".format(line))
 
     def write_push(self, segment, index):
         self._validate_segment_index(segment, index)
-        self._fd.write("push {} {}".format(segment, index))
+        self._println("push {} {}".format(segment, index))
 
     def write_pop(self, segment, index):
         self._validate_segment_index(segment, index)
-        self._fd.write("pop {} {}".format(segment, index))
+        self._println("pop {} {}".format(segment, index))
 
     def write_arithmetic(self, command):
         if command not in self.ARITHMETIC_COMMANDS:
             raise VmWriterError("Invalid arithmetic command: <{}>".format(command))
-        self._fd.write(command)
+        self._println(command)
 
     def write_label(self, label):
-        self._fd.write("label {}".format(label))
+        self._println("label {}".format(label))
 
     def write_goto(self, label):
-        self._fd.write("goto {}".format(label))
+        self._println("goto {}".format(label))
 
     def write_if(self, label):
-        self._fd.write("if-goto {}".format(label))
+        self._println("if-goto {}".format(label))
 
     def write_call(self, name, num_args):
-        self._fd.write("call {} {}".format(name, num_args))
+        self._println("call {} {}".format(name, num_args))
 
     def write_function(self, name, num_locals):
-         self._fd.write("function {} {}".format(name, num_locals))
+        self._println("function {} {}".format(name, num_locals))
 
     def write_return(self):
-         self._fd.write("return")
+        self._println("return")
