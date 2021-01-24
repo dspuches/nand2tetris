@@ -470,16 +470,24 @@ class CompilationEngine:
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        method_name = self._compile_identifier()                # subroutineName | className | varName
+        id = self._compile_identifier()                # subroutineName | className | varName
+        num_exp = 0
 
         if self._is_symbol() and self._symbol_is("."):
+            # id is either className or varName
+            # if it is varName (exists in symbol table), push to stack as "hidden argument"
+            if self._symbol_table.kind_of(id) != self._symbol_table.K_NONE:
+                self._vmw.write_push(self._symbol_table.segment_of(id), self._symbol_table.index_of(id))
+                id = self._symbol_table.type_of(id)             # update ID to be className
+                num_exp += 1
+
             self._compile_symbol(".")                           # . symbol
             temp = self._compile_identifier()                   # subroutineName
-            method_name = "{}.{}".format(method_name, temp)
+            id = "{}.{}".format(id, temp)
 
         self._compile_symbol("(")                               # ( symbol
-        num_expressions = self._compile_expression_list(0)      # expressionList
-        self._vmw.write_call(method_name, num_expressions)
+        num_expressions = self._compile_expression_list(num_exp)    # expressionList
+        self._vmw.write_call(id, num_expressions)
         self._compile_symbol(")")                               # ) symbol
 
     # Compile a let statment. Assumes current token is a keyword = 'while'
