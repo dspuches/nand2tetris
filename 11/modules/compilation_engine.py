@@ -466,6 +466,7 @@ class CompilationEngine:
         self._tkn.advance()                                     # do keyword
         self._compile_subroutine_call()                         # subroutineCall
         self._compile_symbol(";")                               # ; symbol
+        self._vmw.write_pop(VmWriter.S_TEMP, 0)                 # pop the return value (0) and ignore
 
     # Compile the subroutineCall portion of a do statement
     # Grammar:
@@ -505,12 +506,19 @@ class CompilationEngine:
     # 'return' expression? ';'
     def _compile_return(self):
         self._tkn.advance()                                     # return keyword
+        return_exp = False
 
-        # if the next token is not a ; symbol, try to compile expression
+        # if the next token is not a ; symbol, try to compile expression and push the value onto the stack
         if not self._is_symbol():
             self._compile_expression()
+            return_exp = True
         elif not self._symbol_is(";"):
             self._compile_expression()
+            return_exp = True
+        
+        # no expression, so 0 must be pushed onto stack
+        if not return_exp:
+            self._vmw.write_push(VmWriter.S_CONSTANT, 0)
 
         self._compile_symbol(";")                               # ; symbol
         self._vmw.write_return()
