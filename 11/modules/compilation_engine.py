@@ -662,9 +662,12 @@ class CompilationEngine:
     def _compile_unary_op(self):
         if self._symbol_is("-"):
             self._compile_symbol("-")
+            arith_cmd = "neg"
         else:
             self._compile_symbol("~")
+            arith_cmd = "neg"
         self._compile_term()
+        self._vmw.write_arithmetic(arith_cmd)
 
     # Compile expression(s)
     # Grammar:
@@ -684,6 +687,6 @@ class CompilationEngine:
             return count
         
         # process more expressions
-        self._compile_expression_list(count)
+        count = self._compile_expression_list(count)
         return count
     
