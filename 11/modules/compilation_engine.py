@@ -1,5 +1,6 @@
 from modules.jack_tokenizer import JackTokenizer
 from modules.symbol_table import SymbolTable
+from modules.vm_writer import VmWriter
 from errors.syntax_error import SyntaxError
 
 class CompilationEngine:
@@ -12,6 +13,7 @@ class CompilationEngine:
         self._fd = out_f                            # output file handle
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
         self._symbol_table = SymbolTable()
+        self._vmw = VmWriter(out_f)
         self._indents = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
@@ -210,7 +212,6 @@ class CompilationEngine:
         if (not self._is_identifier()):
             self._identifier_syntax_error()
         identifier = self._tkn.token()
-        self._print_xml_token("identifier", identifier)
         self._tkn.advance()
         return identifier
     
@@ -229,7 +230,6 @@ class CompilationEngine:
         elif (token == "&"):
             token = "&amp;"
             
-        self._print_xml_token("symbol", token)
         if (advance):
             self._tkn.advance()
     
@@ -248,12 +248,8 @@ class CompilationEngine:
                 lower_keywords.append("className")
                 self._type_syntax_error(lower_keywords)
             
-            # output keyword
-            self._print_xml_token("keyword", self._tkn.token())
             self._tkn.advance()
         elif self._is_identifier():
-            # output identifier
-            self._print_xml_token("identifier", self._tkn.token())
             self._tkn.advance()
         else:
             lower_keywords = [each_string.lower() for each_string in valid_keywords]
@@ -269,15 +265,12 @@ class CompilationEngine:
         if ((not self._is_keyword()) or (not self._keyword_is(self._tkn.K_CLASS))):
             self._keyword_syntax_error("class")
 
-        self._open_superstructure("class")                      # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # class keyword
-        self._tkn.advance()
-        self._compile_identifier()                              # class name (identifier)
+        self._tkn.advance()                                     # class keyword
+        class_name = self._compile_identifier()                 # class name (identifier)
         self._compile_symbol("{")                               # { symbol:
         self._compile_class_var_dec()                           # classVarDec*
-        self._compile_subroutine()                              # subroutineDec*
+        self._compile_subroutine(class_name)                    # subroutineDec*
         self._compile_symbol("}", False)                        # } symbol, dont advance to next token (shouldnt be any more)
-        self._close_superstructure("class")                     # close superstructure
 
     # Compile a class variable declaration
     # Grammar:
@@ -323,7 +316,7 @@ class CompilationEngine:
     # Compile a subroutine
     # Grammar:
     # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
-    def _compile_subroutine(self):
+    def _compile_subroutine(self, class_name):
         # return if there are no more subroutines to process (not a keyword or not a function keyword)
         if not self._is_keyword():
             return
@@ -336,21 +329,18 @@ class CompilationEngine:
             return
 
         self._symbol_table.start_method()                       # reset method scope
-        self._open_superstructure("subroutineDec")              # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # ('constructor' | 'function' | 'method')
-        self._tkn.advance()
+        
+        self._tkn.advance()                                     # ('constructor' | 'function' | 'method')
         self._compile_type(True)                                # ('void' | type)
-        self._compile_identifier()                              # subroutineName
+        method_name = self._compile_identifier()                # subroutineName
         self._compile_symbol("(")                               # ( symbol
-        self._open_superstructure("parameterList")              # superstructure
         self._compile_parameter_list()                          # parameterList
-        self._close_superstructure("parameterList")             # close superstructure
+        self._vmw.write_function("{}.{}".format(class_name, method_name), self._symbol_table.var_count(SymbolTable.K_VAR))
         self._compile_symbol(")")                               # ) symbol
         self._compile_subroutine_body()                         # subroutineBody
-        self._close_superstructure("subroutineDec")             # close superstructure
 
         # process more subroutines
-        self._compile_subroutine()
+        self._compile_subroutine(class_name)
         return
         
     # Compile a (possibly empty) parameter list
@@ -391,14 +381,10 @@ class CompilationEngine:
     # Grammar:
     # '{' varDec* statements '}'
     def _compile_subroutine_body(self):
-        self._open_superstructure("subroutineBody")             # superstructure
         self._compile_symbol("{")                               # { symbol
         self._compile_var_dec()                                 # varDec*
-        self._open_superstructure("statements")                 # superstructure
         self._compile_statements()                              # statements
-        self._close_superstructure("statements")                # close superstructure
         self._compile_symbol("}")                               # } symbol
-        self._close_superstructure("subroutineBody")            # close superstructure
     
     # Compile variable declaration(s)
     # Grammar
@@ -477,28 +463,24 @@ class CompilationEngine:
     # Grammar:
     # do subroutineCall ';'
     def _compile_do(self):
-        self._open_superstructure("doStatement")                # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # do keyword
-        self._tkn.advance()
-        self._compile_identifier()                              # subroutineName | className | varName
+        self._tkn.advance()                                     # do keyword
         self._compile_subroutine_call()                         # subroutineCall
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("doStatement")               # close superstructure
 
     # Compile the subroutineCall portion of a do statement
     # Grammar:
     # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
     def _compile_subroutine_call(self):
-        #self._compile_identifier()                             # subroutineName | className | varName
+        method_name = self._compile_identifier()                # subroutineName | className | varName
 
         if self._is_symbol() and self._symbol_is("."):
             self._compile_symbol(".")                           # . symbol
-            self._compile_identifier()                          # subroutineName
+            temp = self._compile_identifier()                   # subroutineName
+            method_name = "{}.{}".format(method_name, temp)
 
         self._compile_symbol("(")                               # ( symbol
-        self._open_superstructure("expressionList")             # superstructure
-        self._compile_expression_list()                         # expressionList
-        self._close_superstructure("expressionList")            # close superstructure
+        num_expressions = self._compile_expression_list(0)      # expressionList
+        self._vmw.write_call(method_name, num_expressions)
         self._compile_symbol(")")                               # ) symbol
 
     # Compile a let statment. Assumes current token is a keyword = 'while'
@@ -522,9 +504,7 @@ class CompilationEngine:
     # Grammar:
     # 'return' expression? ';'
     def _compile_return(self):
-        self._open_superstructure("returnStatement")            # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # return keyword
-        self._tkn.advance()
+        self._tkn.advance()                                     # return keyword
 
         # if the next token is not a ; symbol, try to compile expression
         if not self._is_symbol():
@@ -533,7 +513,7 @@ class CompilationEngine:
             self._compile_expression()
 
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("returnStatement")           # close superstructure
+        self._vmw.write_return()
 
     # Compile an if/else statement. Assumes the next token is keyword == 'if'
     # Grammar:
@@ -575,10 +555,8 @@ class CompilationEngine:
     # Grammar:
     # term (op term)*
     def _compile_expression(self):
-        self._open_superstructure("expression")                 # superstructure
         self._compile_term()                                    # term
         self._compile_op_term()                                 # (op term)*
-        self._close_superstructure("expression")                # close superstructure
 
     # Compile zero or more op terms
     # Grammar:
@@ -586,8 +564,14 @@ class CompilationEngine:
     def _compile_op_term(self):
         if self._is_op():
             # if token is an op, process op token
+            op = self._tkn.symbol()
             self._compile_symbol(self._tkn.symbol())
-            self._compile_term() 
+            self._compile_term()
+            if op == "+":
+                self._vmw.write_arithmetic("add")
+            elif op == "*":
+                #self._vmw.write_arithmetic("not")
+                self._vmw.write_call("Math.multiply", 2)
         else:
             return
         
@@ -600,7 +584,6 @@ class CompilationEngine:
     # varName '[' expression ']' | subroutineCall | '(' expression ')'
     # unaryOp term
     def _compile_term(self):
-        self._open_superstructure("term")                       # superstructure
         
         if self._is_int_constant():
             self._compile_int_constant()                        # integerConstant
@@ -621,7 +604,6 @@ class CompilationEngine:
         else:
             self._expression_syntax_error()                     # No valid term matches found
 
-        self._close_superstructure("term")                      # close superstructure
 
     # Compile an integerConstant
     # Grammar:
@@ -629,7 +611,7 @@ class CompilationEngine:
     def _compile_int_constant(self):
         if (not self._is_int_constant()):
             self._integer_syntax_error()
-        self._print_xml_token("integerConstant", self._tkn.token())
+        self._vmw.write_push("constant", self._tkn.token())
         self._tkn.advance()
 
     # Compile a stringConstant
@@ -675,22 +657,24 @@ class CompilationEngine:
             self._compile_symbol("~")
         self._compile_term()
 
-    # First pass of expressionList is to only allow an identifier as expressionList
+    # Compile expression(s)
     # Grammar:
     # (expression (',' expression)*)?
-    def _compile_expression_list(self):
+    def _compile_expression_list(self, count):
         if self._is_term_start():
             # determine if the current token is the start of a term
             self._compile_expression()
+            count += 1
         elif self._is_symbol() and self._symbol_is(","):
             # comma means additional expression
             self._compile_symbol(",")
             self._compile_expression()
+            count += 1
         else:
             # no more to process
-            return
+            return count
         
         # process more expressions
-        self._compile_expression_list()
-        return
+        self._compile_expression_list(count)
+        return count
     
