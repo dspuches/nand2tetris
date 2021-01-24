@@ -446,16 +446,14 @@ class CompilationEngine:
     # Compile a let statment. Assumes current token is a keyword = 'let'
     # Grammar:
     # 'let' varName ('[' expression ']')? '=' expression ';'
-    def _compile_let(self):
-        self._open_superstructure("letStatement")               # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # let keyword
-        self._tkn.advance()
-        self._compile_identifier()                              # varName
+    def _compile_let(self):   
+        self._tkn.advance()                                     # let keyword
+        var_name = self._compile_identifier()                   # varName
         self._compile_array_expression()                        # ('[' expression ']')?
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("letStatement")              # close superstructure
+        self._vmw.write_pop("local", self._symbol_table.index_of(var_name))
 
     # Compile a do statement. Assumes current token is a keyword = "do"
     # Grammar:
