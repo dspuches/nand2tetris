@@ -604,10 +604,13 @@ class CompilationEngine:
         elif self._is_symbol() and self._symbol_is("("):
             self._compile_expression_block()                    # '(' expression ')'
         elif self._is_identifier():
-            self._compile_identifier()
-            if self._is_symbol() and (self._symbol_is("(") or self._symbol_is(".")):
+            # lookup identifier in symbol table. 
+            # #if it is defined, compile array expression. Otherwise compile subroutine
+            kind = self._symbol_table.kind_of(self._tkn.token())
+            if kind == SymbolTable.K_NONE:
                 self._compile_subroutine_call()
             else:
+                self._compile_identifier()
                 self._compile_array_expression()                # varName | varName '[' expression ']'
         else:
             self._expression_syntax_error()                     # No valid term matches found
