@@ -635,8 +635,15 @@ class CompilationEngine:
     # Grammar:
     # 'true' | 'false' | 'null' | 'this'
     def _compile_keyword_constant(self):
-        self._print_xml_token("keyword", self._tkn.token()) # keywordConstant
-        self._tkn.advance()
+        token = self._tkn.token()
+        if token == "true":
+            # true is 1111 1111 1111 1111
+            self._vmw.write_push("constant", 0)
+            self._vmw.write_arithmetic("not")
+        elif token == "false":
+            # false is 0000 0000 0000 0000
+            self._vmw.write_push("constant", 0)
+        self._tkn.advance() # keywordConstant
 
     # Compile an optional array expression
     # Grammar:

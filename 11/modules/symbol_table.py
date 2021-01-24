@@ -12,18 +12,16 @@ class SymbolTable:
 
     def __init__(self):
         self._class_table = {}                              # class scoped symbol table
-        self._class_index = 0                               # class scoped index
-        self._static_count = 0                              # count of static variables in current scope
-        self._field_count = 0                               # count of field variables in current scope
+        self._static_index = 0                              # count of static variables in current scope
+        self._field_index = 0                               # count of field variables in current scope
 
         self.start_method()
 
     # clear the method symbol table and reset the index
     def start_method(self):
         self._method_table = {}                             # method scoped symbol table
-        self._method_index = 0                              # method scoped index
-        self._arg_count = 0                                 # count of arg variables in current scope
-        self._var_count = 0                                 # count of var variables in current scope
+        self._arg_index = 0                                 # count of arg variables in current scope
+        self._var_index = 0                                 # count of var variables in current scope
 
     # define a new entry in the symbol tables
     def define(self, name, type, kind):
@@ -37,37 +35,38 @@ class SymbolTable:
     # helper to define a method scoped symbol
     def _method_define(self, name, type, kind):
         if name not in self._method_table:
-            self._method_table[name] = {"kind": kind, "type": type, "index": self._method_index}
-            self._method_index += 1
+            
             if kind == self.K_ARG:
-                self._arg_count += 1
+                self._method_table[name] = {"kind": kind, "type": type, "index": self._arg_index}
+                self._arg_index += 1
             else:
-                self._var_count += 1
+                self._method_table[name] = {"kind": kind, "type": type, "index": self._var_index}
+                self._var_index += 1
         else:
             raise SymbolTableError("Attemting to define a symbol that is already defined: <{}>".format(name))
 
     # helper to define a class scoped symbol
     def _class_define(self, name, type, kind):
         if name not in self._class_table:
-            self._class_table[name] = {"kind": kind, "type": type, "index": self._class_index}
-            self._class_index += 1
             if kind == self.K_STATIC:
-                self._static_count += 1
+                self._class_table[name] = {"kind": kind, "type": type, "index": self._static_index}
+                self._static_index += 1
             else:
-                self._field_count += 1
+                self._class_table[name] = {"kind": kind, "type": type, "index": self._field_index}
+                self._field_index += 1
         else:
             raise SymbolTableError("Attemting to define a symbol that is already defined: <{}>".format(name))
 
     # return the number of variable definitons of the given kind
     def var_count(self, kind):
         if kind == self.K_STATIC:
-            return self._static_count
+            return self._static_index
         if kind == self.K_FIELD:
-            return self._field_count
+            return self._field_index
         if kind == self.K_ARG:
-            return self._arg_count
+            return self._arg_index
         if kind == self.K_VAR:
-            return self._var_count
+            return self._var_index
 
         raise SymbolTableError("Unknown kind: <{}>".format(kind))
 
