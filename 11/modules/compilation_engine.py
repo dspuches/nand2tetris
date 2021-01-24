@@ -497,6 +497,7 @@ class CompilationEngine:
         self._compile_symbol(")")                               # ) symbol
         self._compile_symbol("{")                               # { symbol
         self._compile_statements()                              # statements
+        self._vmw.write_goto(start_label)
         self._compile_symbol("}")                               # } symbol
         self._vmw.write_label(end_label)
         self._while_index -= 1
