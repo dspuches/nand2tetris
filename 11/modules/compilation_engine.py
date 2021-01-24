@@ -14,6 +14,7 @@ class CompilationEngine:
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
         self._symbol_table = SymbolTable()
         self._vmw = VmWriter(out_f)
+        self._while_index = 0
         self._indents = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
@@ -484,18 +485,21 @@ class CompilationEngine:
     # Grammar:
     # 'while' '(' expression ')' '{' statements '}'
     def _compile_while(self):
-        self._open_superstructure("whileStatement")             # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # while keyword
-        self._tkn.advance()
+        self._tkn.advance()                                     # while keyword
+        start_label = "WHILE_EXP{}".format(self._while_index)
+        end_label = "WHILE_END{}".format(self._while_index)
+        self._vmw.write_label(start_label)
+        self._while_index += 1
         self._compile_symbol("(")                               # ( symbol
         self._compile_expression()                              # expression
+        self._vmw.write_arithmetic("not")
+        self._vmw.write_if(end_label)
         self._compile_symbol(")")                               # ) symbol
         self._compile_symbol("{")                               # { symbol
-        self._open_superstructure("statements")                 # superstructure
         self._compile_statements()                              # statements
-        self._close_superstructure("statements")                # close superstructure
         self._compile_symbol("}")                               # } symbol
-        self._close_superstructure("whileStatement")            # close superstructure
+        self._vmw.write_label(end_label)
+        self._while_index -= 1
 
     # Compile a return statment. Assumes current token is a keyword = 'return'
     # Grammar:
