@@ -618,10 +618,8 @@ class CompilationEngine:
         elif self._is_symbol() and self._symbol_is("("):
             self._compile_expression_block()                    # '(' expression ')'
         elif self._is_identifier():
-            # lookup identifier in symbol table. 
-            # if it is defined, compile array expression. Otherwise compile subroutine
-            kind = self._symbol_table.kind_of(self._tkn.token())
-            if kind == SymbolTable.K_NONE:
+            next_token = self._tkn.next_token()
+            if next_token == "." or next_token == "(":
                 self._compile_subroutine_call()
             else:
                 var_name = self._compile_identifier()

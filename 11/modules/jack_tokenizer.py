@@ -261,6 +261,10 @@ class JackTokenizer():
     def token(self):
         return self._curr_token
 
+    # return the raw next token
+    def next_token(self):
+        return self._next_token
+
     # return true if there are more tokens to process (_next_token is not None)
     def has_more_tokens(self):
         if self._next_token is None:

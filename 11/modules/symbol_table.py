@@ -9,7 +9,7 @@ class SymbolTable:
 
     SEGMENTS = {
         K_STATIC: "static",
-        K_FIELD: "this?",
+        K_FIELD: "this",
         K_ARG: "argument",
         K_VAR: "local",
     }
