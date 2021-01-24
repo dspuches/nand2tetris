@@ -14,7 +14,8 @@ class CompilationEngine:
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
         self._symbol_table = SymbolTable()
         self._vmw = VmWriter(out_f)
-        self._while_index = 0
+        self._while_index = 0                       # keep track of nested whiles
+        self._if_index = 0                          # keep track of nested ifs
         self._indents = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
@@ -454,7 +455,7 @@ class CompilationEngine:
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
-        self._vmw.write_pop("local", self._symbol_table.index_of(var_name))
+        self._vmw.write_pop(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
 
     # Compile a do statement. Assumes current token is a keyword = "do"
     # Grammar:
@@ -528,19 +529,25 @@ class CompilationEngine:
     # Grammar:
     # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     def _compile_if(self):
-        self._open_superstructure("ifStatement")                # superstructure
-        self._print_xml_token("keyword", self._tkn.token())     # if keyword
-        self._tkn.advance()
+        true_label = "IF_TRUE{}".format(self._if_index)
+        false_label = "IF_FALSE{}".format(self._if_index)
+        end_label = "IF_END{}".format(self._if_index)
+        self._if_index += 1
+        self._tkn.advance()                                     # if keyword
         self._compile_symbol("(")                               # ( symbol
         self._compile_expression()                              # expression
         self._compile_symbol(")")                               # ) symbol
+        self._vmw.write_if(true_label)
+        self._vmw.write_goto(false_label)
+        self._vmw.write_label(true_label)
         self._compile_symbol("{")                               # { symbol
-        self._open_superstructure("statements")                 # superstructure
         self._compile_statements()                              # statements
-        self._close_superstructure("statements")                # close superstructure
         self._compile_symbol("}")                               # } symbol
+        self._vmw.write_goto(end_label)
+        self._vmw.write_label(false_label)
         self._compile_else()                                    # ('else' '{' statements '}')?
-        self._close_superstructure("ifStatement")               # close superstructure
+        self._vmw.write_label(end_label)
+        self._if_index -= 1
     
     # Compiles the else portion of an if/else block if there is one.
     # Grammar:
@@ -552,12 +559,9 @@ class CompilationEngine:
         if not self._keyword_is(self._tkn.K_ELSE):
             return
         
-        self._print_xml_token("keyword", self._tkn.token())     # else keyword
-        self._tkn.advance()
+        self._tkn.advance()                                     # else keyword
         self._compile_symbol("{")                               # { symbol
-        self._open_superstructure("statements")                 # superstructure
         self._compile_statements()                              # statements
-        self._close_superstructure("statements")                # close superstructure
         self._compile_symbol("}")                               # } symbol
 
     # Compile expression
@@ -579,8 +583,17 @@ class CompilationEngine:
             if op == "+":
                 self._vmw.write_arithmetic("add")
             elif op == "*":
-                #self._vmw.write_arithmetic("not")
                 self._vmw.write_call("Math.multiply", 2)
+            elif op == "<":
+                self._vmw.write_arithmetic("lt")
+            elif op == ">":
+                self._vmw.write_arithmetic("gt")
+            elif op == "&":
+                self._vmw.write_arithmetic("and")
+            elif op == "=":
+                self._vmw.write_arithmetic("eq")
+            elif op == "-":
+                self._vmw.write_arithmetic("sub")
         else:
             return
         
@@ -613,7 +626,8 @@ class CompilationEngine:
             else:
                 var_name = self._compile_identifier()
                 self._compile_array_expression()                # varName | varName '[' expression ']'
-                self._vmw.write_push("local", self._symbol_table.index_of(var_name))
+
+                self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
         else:
             self._expression_syntax_error()                     # No valid term matches found
 
@@ -676,7 +690,7 @@ class CompilationEngine:
             arith_cmd = "neg"
         else:
             self._compile_symbol("~")
-            arith_cmd = "neg"
+            arith_cmd = "not"
         self._compile_term()
         self._vmw.write_arithmetic(arith_cmd)
 

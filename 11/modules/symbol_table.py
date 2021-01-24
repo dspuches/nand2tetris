@@ -7,6 +7,13 @@ class SymbolTable:
     K_VAR = "var"
     K_NONE = "none"
 
+    SEGMENTS = {
+        K_STATIC: "static",
+        K_FIELD: "this?",
+        K_ARG: "argument",
+        K_VAR: "local",
+    }
+
     CLASS_SCOPES = [K_STATIC, K_FIELD]
     METHOD_SCOPES = [K_ARG, K_VAR]
 
@@ -97,3 +104,8 @@ class SymbolTable:
             return self._class_table[name]["index"]
 
         raise SymbolTableError("Undefined name encountered when calling type_of: <{}>".format(name))
+
+    # return the segment that the kind should be mapped to
+    def segment_of(self, name):
+        kind = self.kind_of(name)
+        return self.SEGMENTS[kind]
