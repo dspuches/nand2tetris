@@ -606,8 +606,9 @@ class CompilationEngine:
             if kind == SymbolTable.K_NONE:
                 self._compile_subroutine_call()
             else:
-                self._compile_identifier()
+                var_name = self._compile_identifier()
                 self._compile_array_expression()                # varName | varName '[' expression ']'
+                self._vmw.write_push("local", self._symbol_table.index_of(var_name))
         else:
             self._expression_syntax_error()                     # No valid term matches found
 
