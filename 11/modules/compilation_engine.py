@@ -333,11 +333,11 @@ class CompilationEngine:
         self._tkn.advance()                                     # ('constructor' | 'function' | 'method')
         self._compile_type(True)                                # ('void' | type)
         method_name = self._compile_identifier()                # subroutineName
+        method_name = "{}.{}".format(class_name, method_name)
         self._compile_symbol("(")                               # ( symbol
         self._compile_parameter_list()                          # parameterList
-        self._vmw.write_function("{}.{}".format(class_name, method_name), self._symbol_table.var_count(SymbolTable.K_VAR))
         self._compile_symbol(")")                               # ) symbol
-        self._compile_subroutine_body()                         # subroutineBody
+        self._compile_subroutine_body(method_name)              # subroutineBody
 
         # process more subroutines
         self._compile_subroutine(class_name)
@@ -380,9 +380,10 @@ class CompilationEngine:
     # Compile a subroutine body
     # Grammar:
     # '{' varDec* statements '}'
-    def _compile_subroutine_body(self):
+    def _compile_subroutine_body(self, method_name):
         self._compile_symbol("{")                               # { symbol
         self._compile_var_dec()                                 # varDec*
+        self._vmw.write_function(method_name, self._symbol_table.var_count(SymbolTable.K_VAR))
         self._compile_statements()                              # statements
         self._compile_symbol("}")                               # } symbol
     
@@ -396,16 +397,13 @@ class CompilationEngine:
         if (not self._keyword_is(self._tkn.K_VAR)):
             return
         
-        self._open_superstructure("varDec")                     # superstructure
         kind = self._tkn.token()
-        self._print_xml_token("keyword", kind)                  # 'var'
-        self._tkn.advance()
+        self._tkn.advance()                                     # 'var'
         type = self._compile_type()                             # type
         name = self._compile_identifier()                       # varName
         self._symbol_table.define(name, type, kind)
         self._compile_varname_list(type, kind)                  # (',' varname)*
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("varDec")                    # close superstructure
 
         # process more varDec's (if there are any)
         self._compile_var_dec()
@@ -605,7 +603,7 @@ class CompilationEngine:
             self._compile_expression_block()                    # '(' expression ')'
         elif self._is_identifier():
             # lookup identifier in symbol table. 
-            # #if it is defined, compile array expression. Otherwise compile subroutine
+            # if it is defined, compile array expression. Otherwise compile subroutine
             kind = self._symbol_table.kind_of(self._tkn.token())
             if kind == SymbolTable.K_NONE:
                 self._compile_subroutine_call()
