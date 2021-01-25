@@ -394,9 +394,9 @@ class CompilationEngine:
         if is_constructor:
             # allocate memory for the object instance and set this to point to the new memory (pointer[0])
             num_fields = self._symbol_table.var_count(self._symbol_table.K_FIELD)
-            self._vmw.write_push(self._vmw.S_CONSTANT, num_fields)
+            self._vmw.write_push(VmWriter.S_CONSTANT, num_fields)
             self._vmw.write_call("Memory.alloc", 1)
-            self._vmw.write_pop(self._vmw.S_POINTER, 0)
+            self._vmw.write_pop(VmWriter.S_POINTER, 0)
 
         self._compile_statements()                              # statements
         self._compile_symbol("}")                               # } symbol
@@ -657,7 +657,7 @@ class CompilationEngine:
     def _compile_int_constant(self):
         if (not self._is_int_constant()):
             self._integer_syntax_error()
-        self._vmw.write_push("constant", self._tkn.token())
+        self._vmw.write_push(VmWriter.S_CONSTANT, self._tkn.token())
         self._tkn.advance()
 
     # Compile a stringConstant
@@ -676,13 +676,13 @@ class CompilationEngine:
         token = self._tkn.token()
         if token == "true":
             # true is 1111 1111 1111 1111
-            self._vmw.write_push("constant", 0)
+            self._vmw.write_push(VmWriter.S_CONSTANT, 0)
             self._vmw.write_arithmetic("not")
         elif token == "false":
             # false is 0000 0000 0000 0000
-            self._vmw.write_push("constant", 0)
+            self._vmw.write_push(VmWriter.S_CONSTANT, 0)
         elif token == "this":
-            self._vmw.write_push("pointer", 0)
+            self._vmw.write_push(VmWriter.S_POINTER, 0)
         self._tkn.advance() # keywordConstant
 
     # Compile an optional array expression
