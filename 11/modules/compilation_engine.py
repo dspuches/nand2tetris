@@ -542,6 +542,7 @@ class CompilationEngine:
         if not return_exp:
             self._vmw.write_push(VmWriter.S_CONSTANT, 0)
 
+
         self._compile_symbol(";")                               # ; symbol
         self._vmw.write_return()
 
@@ -680,6 +681,8 @@ class CompilationEngine:
         elif token == "false":
             # false is 0000 0000 0000 0000
             self._vmw.write_push("constant", 0)
+        elif token == "this":
+            self._vmw.write_push("pointer", 0)
         self._tkn.advance() # keywordConstant
 
     # Compile an optional array expression
