@@ -284,19 +284,18 @@ class CompilationEngine:
         if (not self._keyword_in([self._tkn.K_STATIC, self._tkn.K_FIELD])):
             return
         
-        self._open_superstructure("classVarDec")                # superstructure
         kind = self._tkn.token()
-        self._print_xml_token("keyword", kind)                  # ('static' | 'field')
-        self._tkn.advance()
+        self._tkn.advance()                                     # ('static' | 'field')
         type = self._compile_type()                             # type
         name = self._compile_identifier()                       # varName
         self._symbol_table.define(name, type, kind)
         self._compile_varname_list(type, kind)                  # (',' varname)*
         self._compile_symbol(";")                               # ; symbol
-        self._close_superstructure("classVarDec")               # close superstructure
 
         # process more classVarDec's (if there are any)
         self._compile_class_var_dec()
+
+        # Allocate
         return
 
     # Compile a list of variable names
@@ -331,6 +330,11 @@ class CompilationEngine:
             return
 
         self._symbol_table.start_method()                       # reset method scope
+
+        # determine if this method is a constructor
+        is_constructor = False
+        if self._tkn.keyword() == self._tkn.K_CONSTRUCTOR:
+            is_constructor = True
         
         self._tkn.advance()                                     # ('constructor' | 'function' | 'method')
         self._compile_type(True)                                # ('void' | type)
@@ -339,7 +343,7 @@ class CompilationEngine:
         self._compile_symbol("(")                               # ( symbol
         self._compile_parameter_list()                          # parameterList
         self._compile_symbol(")")                               # ) symbol
-        self._compile_subroutine_body(method_name)              # subroutineBody
+        self._compile_subroutine_body(method_name, is_constructor)  # subroutineBody
 
         # process more subroutines
         self._compile_subroutine(class_name)
@@ -382,10 +386,18 @@ class CompilationEngine:
     # Compile a subroutine body
     # Grammar:
     # '{' varDec* statements '}'
-    def _compile_subroutine_body(self, method_name):
+    def _compile_subroutine_body(self, method_name, is_constructor):
         self._compile_symbol("{")                               # { symbol
         self._compile_var_dec()                                 # varDec*
         self._vmw.write_function(method_name, self._symbol_table.var_count(SymbolTable.K_VAR))
+
+        if is_constructor:
+            # allocate memory for the object instance and set this to point to the new memory (pointer[0])
+            num_fields = self._symbol_table.var_count(self._symbol_table.K_FIELD)
+            self._vmw.write_push(self._vmw.S_CONSTANT, num_fields)
+            self._vmw.write_call("Memory.alloc", 1)
+            self._vmw.write_pop(self._vmw.S_POINTER, 0)
+
         self._compile_statements()                              # statements
         self._compile_symbol("}")                               # } symbol
     
