@@ -333,8 +333,11 @@ class CompilationEngine:
 
         # determine if this method is a constructor
         is_constructor = False
+        is_method = False
         if self._tkn.keyword() == self._tkn.K_CONSTRUCTOR:
             is_constructor = True
+        elif self._tkn.keyword() == self._tkn.K_METHOD:
+            is_method = True
         
         self._tkn.advance()                                     # ('constructor' | 'function' | 'method')
         self._compile_type(True)                                # ('void' | type)
@@ -343,7 +346,7 @@ class CompilationEngine:
         self._compile_symbol("(")                               # ( symbol
         self._compile_parameter_list()                          # parameterList
         self._compile_symbol(")")                               # ) symbol
-        self._compile_subroutine_body(method_name, is_constructor)  # subroutineBody
+        self._compile_subroutine_body(method_name, is_constructor, is_method)  # subroutineBody
 
         # process more subroutines
         self._compile_subroutine(class_name)
@@ -386,7 +389,7 @@ class CompilationEngine:
     # Compile a subroutine body
     # Grammar:
     # '{' varDec* statements '}'
-    def _compile_subroutine_body(self, method_name, is_constructor):
+    def _compile_subroutine_body(self, method_name, is_constructor, is_method):
         self._compile_symbol("{")                               # { symbol
         self._compile_var_dec()                                 # varDec*
         self._vmw.write_function(method_name, self._symbol_table.var_count(SymbolTable.K_VAR))
@@ -396,6 +399,10 @@ class CompilationEngine:
             num_fields = self._symbol_table.var_count(self._symbol_table.K_FIELD)
             self._vmw.write_push(VmWriter.S_CONSTANT, num_fields)
             self._vmw.write_call("Memory.alloc", 1)
+            self._vmw.write_pop(VmWriter.S_POINTER, 0)
+        elif is_method:
+            # first "hidden" argument is this
+            self._vmw.write_push(VmWriter.S_ARGUMENT, 0)
             self._vmw.write_pop(VmWriter.S_POINTER, 0)
 
         self._compile_statements()                              # statements
