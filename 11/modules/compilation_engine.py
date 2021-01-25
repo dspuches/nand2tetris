@@ -407,6 +407,8 @@ class CompilationEngine:
 
         self._compile_statements()                              # statements
         self._compile_symbol("}")                               # } symbol
+        self._if_index = 0
+        self._while_index = 0
     
     # Compile variable declaration(s)
     # Grammar
@@ -528,7 +530,6 @@ class CompilationEngine:
         self._vmw.write_goto(start_label)
         self._compile_symbol("}")                               # } symbol
         self._vmw.write_label(end_label)
-        self._while_index -= 1
 
     # Compile a return statment. Assumes current token is a keyword = 'return'
     # Grammar:
@@ -571,21 +572,23 @@ class CompilationEngine:
         self._compile_symbol("{")                               # { symbol
         self._compile_statements()                              # statements
         self._compile_symbol("}")                               # } symbol
-        self._vmw.write_goto(end_label)
-        self._vmw.write_label(false_label)
-        self._compile_else()                                    # ('else' '{' statements '}')?
-        self._vmw.write_label(end_label)
-        self._if_index -= 1
+        self._compile_else(end_label, false_label)                                    # ('else' '{' statements '}')?
     
     # Compiles the else portion of an if/else block if there is one.
     # Grammar:
     # ('else' '{' statements '}')?
-    def _compile_else(self):
+    def _compile_else(self, end_label, false_label):
         # Return if the first token isnt "else"
         if not self._is_keyword():
+            self._vmw.write_label(false_label)
             return
         if not self._keyword_is(self._tkn.K_ELSE):
+            self._vmw.write_label(false_label)
             return
+
+        self._vmw.write_goto(end_label)     
+        self._vmw.write_label(false_label)
+        self._vmw.write_label(end_label)
         
         self._tkn.advance()                                     # else keyword
         self._compile_symbol("{")                               # { symbol
