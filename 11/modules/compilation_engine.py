@@ -594,11 +594,11 @@ class CompilationEngine:
 
         self._vmw.write_goto(end_label)     
         self._vmw.write_label(false_label)
-        self._vmw.write_label(end_label)
         
         self._tkn.advance()                                     # else keyword
         self._compile_symbol("{")                               # { symbol
         self._compile_statements()                              # statements
+        self._vmw.write_label(end_label)
         self._compile_symbol("}")                               # } symbol
 
     # Compile expression
