@@ -17,6 +17,7 @@ class CompilationEngine:
         self._while_index = 0                       # keep track of nested whiles
         self._if_index = 0                          # keep track of nested ifs
         self._indents = ""
+        self._class_name = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
         
@@ -268,10 +269,10 @@ class CompilationEngine:
             self._keyword_syntax_error("class")
 
         self._tkn.advance()                                     # class keyword
-        class_name = self._compile_identifier()                 # class name (identifier)
+        self._class_name = self._compile_identifier()                 # class name (identifier)
         self._compile_symbol("{")                               # { symbol:
         self._compile_class_var_dec()                           # classVarDec*
-        self._compile_subroutine(class_name)                    # subroutineDec*
+        self._compile_subroutine()                              # subroutineDec*
         self._compile_symbol("}", False)                        # } symbol, dont advance to next token (shouldnt be any more)
 
     # Compile a class variable declaration
@@ -317,7 +318,7 @@ class CompilationEngine:
     # Compile a subroutine
     # Grammar:
     # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
-    def _compile_subroutine(self, class_name):
+    def _compile_subroutine(self):
         # return if there are no more subroutines to process (not a keyword or not a function keyword)
         if not self._is_keyword():
             return
@@ -342,14 +343,14 @@ class CompilationEngine:
         self._tkn.advance()                                     # ('constructor' | 'function' | 'method')
         self._compile_type(True)                                # ('void' | type)
         method_name = self._compile_identifier()                # subroutineName
-        method_name = "{}.{}".format(class_name, method_name)
+        method_name = "{}.{}".format(self._class_name, method_name)
         self._compile_symbol("(")                               # ( symbol
         self._compile_parameter_list()                          # parameterList
         self._compile_symbol(")")                               # ) symbol
         self._compile_subroutine_body(method_name, is_constructor, is_method)  # subroutineBody
 
         # process more subroutines
-        self._compile_subroutine(class_name)
+        self._compile_subroutine()
         return
         
     # Compile a (possibly empty) parameter list
@@ -505,6 +506,11 @@ class CompilationEngine:
             self._compile_symbol(".")                           # . symbol
             temp = self._compile_identifier()                   # subroutineName
             id = "{}.{}".format(id, temp)
+        else:
+            # push hidden argument this, and set id to class_name.method_name
+            self._vmw.write_push(VmWriter.S_POINTER, 0)
+            id = "{}.{}".format(self._class_name, id)
+            num_exp += 1
 
         self._compile_symbol("(")                               # ( symbol
         num_expressions = self._compile_expression_list(num_exp)    # expressionList
