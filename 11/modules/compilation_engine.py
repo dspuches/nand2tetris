@@ -731,8 +731,8 @@ class CompilationEngine:
             # true is 1111 1111 1111 1111
             self._vmw.write_push(VmWriter.S_CONSTANT, 0)
             self._vmw.write_arithmetic("not")
-        elif token == "false":
-            # false is 0000 0000 0000 0000
+        elif token == "false" or token == "null":
+            # false/null are 0000 0000 0000 0000
             self._vmw.write_push(VmWriter.S_CONSTANT, 0)
         elif token == "this":
             self._vmw.write_push(VmWriter.S_POINTER, 0)
