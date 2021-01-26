@@ -477,11 +477,25 @@ class CompilationEngine:
     def _compile_let(self):   
         self._tkn.advance()                                     # let keyword
         var_name = self._compile_identifier()                   # varName
-        self._compile_array_expression(var_name)                # ('[' expression ']')?
+        is_array = self._compile_array_expression(var_name)     # ('[' expression ']')?
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
-        self._vmw.write_pop(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
+
+        if is_array:
+            # pop temp 0 - return value of right side of = expression
+            self._vmw.write_pop(VmWriter.S_TEMP, 0)
+            # pop pointer 1 aka that = *(array[index])
+            self._vmw.write_pop(VmWriter.S_POINTER, 1)
+            # push temp 0
+            self._vmw.write_push(VmWriter.S_TEMP, 0)
+            # pop that 0 - array[index] = temp 0
+            self._vmw.write_pop(VmWriter.S_THAT, 0)
+
+
+        else:
+            # pop the return value directly to the non-array variable
+            self._vmw.write_pop(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
 
     # Compile a do statement. Assumes current token is a keyword = "do"
     # Grammar:
@@ -664,9 +678,16 @@ class CompilationEngine:
                 self._compile_subroutine_call()
             else:
                 var_name = self._compile_identifier()
-                self._compile_array_expression(var_name)        # varName | varName '[' expression ']'
+                is_array = self._compile_array_expression(var_name)        # varName | varName '[' expression ']'
 
-                self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
+                if is_array:
+                    # pop pointer 1 - this = *array[index]
+                    self._vmw.write_pop(VmWriter.S_POINTER, 1)
+                    # push that 0 - push array[index]
+                    self._vmw.write_push(VmWriter.S_THAT, 0)
+                else:
+                    # push the value of the non-array variable onto the stack
+                    self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
         else:
             self._expression_syntax_error()                     # No valid term matches found
 
@@ -723,6 +744,8 @@ class CompilationEngine:
             self._compile_symbol("]")                           # ] symbol
             self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
             self._vmw.write_arithmetic("add")
+            return True
+        return False
 
     # Compile an expression block
     # Grammar:
