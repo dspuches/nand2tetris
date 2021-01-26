@@ -9,6 +9,10 @@ class CompilationEngine:
     # Advance to the first token
     # Call the recursive function to compile the class
     # After the recursion exits, there should be no more tokens to process
+    #
+    # Currently, the compilation engine assumes error free Jack code.
+    # The compiler does syntax checking, but semantics are mostly ignored.
+    # Semantic checking can be implemented as a future enhancement
     def __init__(self, in_f, out_f):
         self._fd = out_f                            # output file handle
         self._tkn = JackTokenizer(in_f)             # tokenizer that parses the input into tokens
@@ -473,7 +477,7 @@ class CompilationEngine:
     def _compile_let(self):   
         self._tkn.advance()                                     # let keyword
         var_name = self._compile_identifier()                   # varName
-        self._compile_array_expression()                        # ('[' expression ']')?
+        self._compile_array_expression(var_name)                # ('[' expression ']')?
         self._compile_symbol("=")                               # = symbol
         self._compile_expression()                              # expression
         self._compile_symbol(";")                               # ; symbol
@@ -660,7 +664,7 @@ class CompilationEngine:
                 self._compile_subroutine_call()
             else:
                 var_name = self._compile_identifier()
-                self._compile_array_expression()                # varName | varName '[' expression ']'
+                self._compile_array_expression(var_name)        # varName | varName '[' expression ']'
 
                 self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
         else:
@@ -712,11 +716,13 @@ class CompilationEngine:
     # Compile an optional array expression
     # Grammar:
     # '[' expression ']'
-    def _compile_array_expression(self):
+    def _compile_array_expression(self, var_name):
         if self._is_symbol() and self._symbol_is("["):          # ('[' expression ']')?
             self._compile_symbol("[")                           # [ symbol
             self._compile_expression()                          # expression
             self._compile_symbol("]")                           # ] symbol
+            self._vmw.write_push(self._symbol_table.segment_of(var_name), self._symbol_table.index_of(var_name))
+            self._vmw.write_arithmetic("add")
 
     # Compile an expression block
     # Grammar:
