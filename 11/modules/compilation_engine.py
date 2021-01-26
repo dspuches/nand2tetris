@@ -682,7 +682,15 @@ class CompilationEngine:
     def _compile_string_constant(self):
         if (not self._is_string_constant()):
             self._string_syntax_error()
-        self._print_xml_token("stringConstant", self._tkn.string_val())
+
+        str = self._tkn.string_val()
+        str_len = len(str)
+        self._vmw.write_push(VmWriter.S_CONSTANT, str_len)
+        self._vmw.write_call("String.new", 1)
+        for char in str:
+            self._vmw.write_push(VmWriter.S_CONSTANT, ord(char))
+            self._vmw.write_call("String.appendChar", 2)
+        
         self._tkn.advance()
 
     # Compile a keywordConstant
