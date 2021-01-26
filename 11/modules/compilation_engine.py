@@ -348,6 +348,8 @@ class CompilationEngine:
         self._compile_type(True)                                # ('void' | type)
         method_name = self._compile_identifier()                # subroutineName
         method_name = "{}.{}".format(self._class_name, method_name)
+        if is_method:
+            self._symbol_table.define("this", self._class_name, SymbolTable.K_ARG)
         self._compile_symbol("(")                               # ( symbol
         self._compile_parameter_list()                          # parameterList
         self._compile_symbol(")")                               # ) symbol
@@ -639,6 +641,8 @@ class CompilationEngine:
                 self._vmw.write_arithmetic("add")
             elif op == "*":
                 self._vmw.write_call("Math.multiply", 2)
+            elif op == "/":
+                self._vmw.write_call("Math.divide", 2)
             elif op == "<":
                 self._vmw.write_arithmetic("lt")
             elif op == ">":
