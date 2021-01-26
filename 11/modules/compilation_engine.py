@@ -20,7 +20,6 @@ class CompilationEngine:
         self._vmw = VmWriter(out_f)
         self._while_index = 0                       # keep track of nested whiles
         self._if_index = 0                          # keep track of nested ifs
-        self._indents = ""
         self._class_name = ""
         if not self._tkn.has_more_tokens():
             raise SyntaxError(self._tkn, "No tokens found in input file!")
@@ -31,34 +30,6 @@ class CompilationEngine:
         # make sure tokenizer has no more tokens. Raise exception if more tokens exist
         if (self._tkn.has_more_tokens()):
             raise SyntaxError(self._tkn, "Unexpected token found <{}>".format(self._tkn.token()))
-
-    # Increase the indentation of the output by two spaces
-    def _indent(self):
-        self._indents = "{}  ".format(self._indents)
-    
-    # Decrease the indenation of the output by two spaces
-    def _dedent(self):
-        self._indents = self._indents[:-2]
-    
-    # Helper function to output a line to the output file
-    # Prepends output with the appropriate indentation
-    def _println(self, str):
-        self._fd.write("{}{}\n".format(self._indents, str))
-
-    # Helper function to output an xml token of the following format:
-    # <type> value </type>
-    def _print_xml_token(self, type, value):
-        self._println("<{}> {} </{}>".format(type, value, type))
-    
-    # Helper function to output an opening superstructrue xml tag and indent
-    def _open_superstructure(self, name):
-        self._println("<{}>".format(name))
-        self._indent()
-    
-    # Helper function to dedent and output an closing superstructrue xml tag
-    def _close_superstructure(self, name):
-        self._dedent()
-        self._println("</{}>".format(name))
     
     # Helper method to determine if the token matches a type
     def _token_is_type(self, type):
