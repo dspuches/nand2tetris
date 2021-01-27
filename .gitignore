@@ -43,6 +43,7 @@ demo/
 12/ScreenTest
 12/StringTest
 12/SysTest
+12/test
 12/*.vm
 13/
 .vscode/
