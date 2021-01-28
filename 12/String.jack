@@ -18,9 +18,13 @@ class String {
     /** constructs a new empty string with a maximum length of maxLength
      *  and initial length of 0. */
     constructor String new(int maxLength) {
-        let str = Array.new(maxLength);
+        if (maxLength = 0) {
+            let max_len = 1;
+        } else {
+            let max_len = maxLength;
+        }
+        let str = Array.new(max_len);
         let curr_len = 0;
-        let max_len = maxLength;
         return this;
     }
 
@@ -78,7 +82,7 @@ class String {
 
         let ret_val = 0;
 
-        if (curr_len > str[0] = 45) {
+        if (str[0] = 45) {
             let is_negative = true;
             let i = 1;
         } else {
@@ -102,23 +106,72 @@ class String {
         return ret_val;
     }
 
+    /**
+     * Modulo function. Really should live in Math, but for unit testing sake
+     * I am putting it here
+     */
+    function int modulo(int dividend, int divisor) {
+        var int quotient;
+
+        let quotient = dividend / divisor;
+        return dividend - (quotient * divisor);
+    }
+
+    /**
+     * Helper to convert a digit to a char
+     */
+    method char digitToChar(int digit) {
+        return digit + 48;
+    }
+
+    /**
+     * Recursive helper to convert val to a string and store it in this
+     */
+    method void intToString(int val) {
+        var int last_digit;
+        var char c;
+
+        let last_digit = String.modulo(val, 10);
+        let c = digitToChar(last_digit);
+
+        if (val < 10) {
+            do appendChar(c);
+            return;
+        } else {
+            do intToString(val/10);
+            do appendChar(c);
+            return;
+        }
+    }
+
     /** Sets this string to hold a representation of the given value. */
     method void setInt(int val) {
+        
+        while (length() > 0) {
+            do eraseLastChar();
+        }
+
+        if (val < 0) {
+            do appendChar(45);
+            let val = Math.abs(val);
+        }
+
+        do intToString(val);
         return;
     }
 
     /** Returns the new line character. */
     function char newLine() {
-        return "c";
+        return 128;
     }
 
     /** Returns the backspace character. */
     function char backSpace() {
-        return 0;
+        return 129;
     }
 
     /** Returns the double quote (") character. */
     function char doubleQuote() {
-        return 0;
+        return 34;
     }
 }
