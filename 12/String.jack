@@ -19,11 +19,12 @@ class String {
      *  and initial length of 0. */
     constructor String new(int maxLength) {
         if (maxLength = 0) {
-            let max_len = 1;
+            let str = Array.new(1);
         } else {
-            let max_len = maxLength;
+            let str = Array.new(maxLength);
         }
-        let str = Array.new(max_len);
+        let max_len = maxLength;
+        
         let curr_len = 0;
         return this;
     }
