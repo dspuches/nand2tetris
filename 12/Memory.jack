@@ -16,6 +16,8 @@ class Memory {
     function void init() {
         let mem_ptr = 0;
         let free_ptr = 2048;
+        let mem_ptr[2048] = 14333;  // free segments (not including header fields)
+        let mem_ptr[2049] = null;   // free_length.next
         return;
     }
 
@@ -33,16 +35,34 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-        var Array ptr;
+        var int ptr;
+        var int free_list_node;
 
-        let ptr = free_ptr;
-        let free_ptr = free_ptr + size;
-        return ptr;
+        let ptr = 0;                    // return value
+        let free_list_node = free_ptr;
+
+        while (~(free_list_node = 0)) {
+            if ((free_list_node[0]) > size) {
+                // begining of block = free_list_node + num_free_segs + 1 - size
+                let ptr = free_list_node + free_list_node[0] + 1 - size;
+                let ptr[0] = size;
+                let free_list_node[0] = free_list_node[0] - size - 2;
+                let free_list_node = 0;
+            } else {
+                let free_list_node = free_list_node[1];
+            }
+        }
+        return ptr + 1;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
+        var int segment_base;
+
+        let segment_base = o - 2;
+        let segment_base[1] = free_ptr;
+        let free_ptr = segment_base;
         return;
     }    
 }
