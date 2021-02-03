@@ -18,9 +18,30 @@ class Output {
 
     // Character map for displaying characters
     static Array charMaps; 
+    static int cursor_row;
+    static int cursor_col;
+    static int NUM_COLS;
+    static int NUM_ROWS;
+    static Array bit_masks;
 
     /** Initializes the screen, and locates the cursor at the screen's top-left. */
     function void init() {
+        do Output.initMap();
+        let cursor_row = 0;
+        let cursor_row = 0;
+        let NUM_ROWS = 23;
+        let NUM_COLS = 64;
+
+        let bit_masks = Array.new(8);
+        let bit_masks[0] = 1;
+        let bit_masks[1] = 2;
+        let bit_masks[2] = 4;
+        let bit_masks[3] = 8;
+        let bit_masks[4] = 16;
+        let bit_masks[5] = 32;
+        let bit_masks[6] = 64;
+        let bit_masks[7] = 128;
+        return;
     }
 
     // Initializes the character map array
@@ -71,7 +92,8 @@ class Output {
         do Output.create(64,30,51,51,59,59,59,27,3,30,0,0);  // @
         do Output.create(63,30,51,51,24,12,12,0,12,12,0,0);  // ?
 
-        do Output.create(65,0,0,0,0,0,0,0,0,0,0,0);          // A ** TO BE FILLED **
+        //do Output.create(65,48,56,204,204,252,204,204,204,204,0,0); // A
+        do Output.create(65,12,30,51,51,63,51,51,51,51,0,0); // A
         do Output.create(66,31,51,51,51,31,51,51,51,31,0,0); // B
         do Output.create(67,28,54,35,3,3,3,35,54,28,0,0);    // C
         do Output.create(68,15,27,51,51,51,51,51,27,15,0,0); // D
@@ -176,28 +198,84 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
+        let cursor_col = j;
+        let cursor_row = i;
+        return;
     }
 
     /** Displays the given character at the cursor location,
      *  and advances the cursor one column forward. */
     function void printChar(char c) {
+        var Array map;
+        var int row_i, col_i, row, char_row, char_col;
+
+        let map = Output.getMap(c);
+        let row_i = 11 * cursor_row;
+
+        let char_row = 0;
+        
+        // loop through rows
+        while (row_i < (11 * (cursor_row + 1))) {
+            let row = map[char_row];
+            // loop through cols
+            let col_i = 8 * cursor_col;
+            let char_col = 0;
+            while (col_i < (8 * (cursor_col + 1))) {
+                if (bit_masks[char_col] & row = bit_masks[char_col]) {
+                    do Screen.setColor(true);
+                } else {
+                    do Screen.setColor(false);
+                }
+                do Screen.drawPixel(col_i, row_i);
+
+                let col_i = col_i + 1;
+                let char_col = char_col + 1;
+            }
+            let row_i = row_i + 1;
+            let char_row = char_row + 1;
+        }
+
+        // advance cursor
+        let cursor_col = cursor_col + 1;
+
+        if (cursor_col = NUM_COLS) {
+            let cursor_col = 0;
+            let cursor_row = cursor_row + 1;
+        }
+
+        if (cursor_row = NUM_ROWS) {
+            do Output.scroll();
+        }
+
+        return;
+    }
+
+    /** At this point, just return cursor to (0,0) */
+    function void scroll() {
+        let cursor_row = 0;
+        let cursor_col = 0;
+        return;
     }
 
     /** displays the given string starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printString(String s) {
+        return;
     }
 
     /** Displays the given integer starting at the cursor location,
      *  and advances the cursor appropriately. */
     function void printInt(int i) {
+        return;
     }
 
     /** Advances the cursor to the beginning of the next line. */
     function void println() {
+        return;
     }
 
     /** Moves the cursor one column back. */
     function void backSpace() {
+        return;
     }
 }
