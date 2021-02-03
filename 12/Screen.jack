@@ -10,34 +10,65 @@
  * the screen is indexed (0,0).
  */
 class Screen {
+    static int color;
+    static int screen_base;
+    static int COLOR_BLACK;
+    static int COLOR_WHITE;
 
     /** Initializes the Screen. */
     function void init() {
+        let COLOR_BLACK = 1;
+        let COLOR_WHITE = 0;
+        let color = COLOR_BLACK;
+        let screen_base = 16384;
+        return;
     }
 
     /** Erases the entire screen. */
     function void clearScreen() {
+        var bool old_color;
+
+        let old_color = color;
+        let color = COLOR_WHITE;
+        do Screen.drawRectangle(0, 0, 255, 511);
+        let color = old_color;
+
+        return;
     }
 
     /** Sets the current color, to be used for all subsequent drawXXX commands.
      *  Black is represented by true, white by false. */
     function void setColor(boolean b) {
+        if (b) {
+            let color = COLOR_BLACK;
+        } else {
+            let color = COLOR_WHITE;
+        }
+        return;
     }
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
+        var Array screen;
+
+        let screen = screen_base;
+        let screen[x * y] = color;
+        return;
     }
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
+        return;
     }
 
     /** Draws a filled rectangle whose top left corner is (x1, y1)
      * and bottom right corner is (x2,y2), using the current color. */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
+        return;
     }
 
     /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
     function void drawCircle(int x, int y, int r) {
+        return;
     }
 }
