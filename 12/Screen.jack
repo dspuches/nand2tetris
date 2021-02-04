@@ -10,17 +10,33 @@
  * the screen is indexed (0,0).
  */
 class Screen {
-    static int color;
+    static bool color;
     static int screen_base;
-    static int COLOR_BLACK;
-    static int COLOR_WHITE;
+    static Array screen;
+    static Array bit_masks;
 
     /** Initializes the Screen. */
     function void init() {
-        let COLOR_BLACK = 1;
-        let COLOR_WHITE = 0;
-        let color = COLOR_BLACK;
+        let color = true;
         let screen_base = 16384;
+        let screen = screen_base;
+        let bit_masks = Array.new(16);
+        let bit_masks[0] = 1;
+        let bit_masks[1] = 2;
+        let bit_masks[2] = 4;
+        let bit_masks[3] = 8;
+        let bit_masks[4] = 16;
+        let bit_masks[5] = 32;
+        let bit_masks[6] = 64;
+        let bit_masks[7] = 128;
+        let bit_masks[8] = 256;
+        let bit_masks[9] = 512;
+        let bit_masks[10] = 1024;
+        let bit_masks[11] = 2048;
+        let bit_masks[12] = 4096;
+        let bit_masks[13] = 8192;
+        let bit_masks[14] = 16384;
+        let bit_masks[15] = 16384 + 16384;      // 1000 0000 0000 0000
         return;
     }
 
@@ -29,7 +45,7 @@ class Screen {
         var bool old_color;
 
         let old_color = color;
-        let color = COLOR_WHITE;
+        let color = false;
         do Screen.drawRectangle(0, 0, 255, 511);
         let color = old_color;
 
@@ -39,31 +55,86 @@ class Screen {
     /** Sets the current color, to be used for all subsequent drawXXX commands.
      *  Black is represented by true, white by false. */
     function void setColor(boolean b) {
-        if (b) {
-            let color = COLOR_BLACK;
-        } else {
-            let color = COLOR_WHITE;
-        }
+        let color = b;
         return;
     }
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
-        var Array screen;
+        var int address, bit, mask;
 
-        let screen = screen_base;
-        let screen[x * y] = color;
+        let address = (y * 32) + (x / 16);
+        let bit = x - ((x / 16) * 16);           // x % 16
+        let mask = bit_masks[bit];
+        if (color) {
+            let screen[address] = screen[address] | mask;
+        } else {
+            let screen[address] = screen[address] & ~mask;
+        }
+        
+        return;
+    }
+
+    function void drawVerticalLine(int x, int y1, int y2) {
+        var int num_pixels;
+        var int start_y;
+        var int i;
+        
+        let num_pixels = Math.abs(y1 - y2);
+        if (y1 < y2) {
+            let start_y = y1;
+        } else {
+            let start_y = y2;
+        }
+
+        // draw pixel num_pixel times
+        let i = 0;
+        while (i < num_pixels) {
+            do Screen.drawPixel(x, start_y);
+            let start_y = start_y + 1;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void drawHorizontalLine(int x1, int x2, int y) {
+        var int num_pixels;
+        var int start_x;
+        var int i;
+        
+        let num_pixels = Math.abs(x1 - x2);
+        if (x1 < x2) {
+            let start_x = x1;
+        } else {
+            let start_x = x2;
+        }
+
+        // draw pixel num_pixel times
+        let i = 0;
+        while (i < num_pixels) {
+            do Screen.drawPixel(start_x, y);
+            let start_x = start_x + 1;
+            let i = i + 1;
+        }
         return;
     }
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
+        
+        // y1 = y2, horizontal line
+
         return;
     }
 
     /** Draws a filled rectangle whose top left corner is (x1, y1)
      * and bottom right corner is (x2,y2), using the current color. */
     function void drawRectangle(int x1, int y1, int x2, int y2) {
+        while (~(y1 > y2)) {
+            do Screen.drawHorizontalLine(x1, x2, y1);
+            let y1 = y1 + 1;
+        }
+
         return;
     }
 
