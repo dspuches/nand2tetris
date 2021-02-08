@@ -121,8 +121,67 @@ class Screen {
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
-        
-        // y1 = y2, horizontal line
+        var int dx, dy, a, b, adyMinusbdx, temp;
+
+        // horizontal line
+        if (y1 = y2) {
+            do Screen.drawHorizontalLine(x1, x2, y1);
+            return;
+        }
+
+        // vertical line
+        if (x1 = x2) {
+            do Screen.drawVerticalLine(x1, y1, y2);
+            return;
+        }
+
+        // diagonal line
+        if (x2 < x1) {
+            let temp = x1;
+            let x1 = x2;
+            let x2 = temp;
+
+            let temp = y1;
+            let y1 = y2;
+            let y2 = temp;
+        }
+
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let a = 0;
+        let b = 0;
+        let adyMinusbdx = 0;
+
+        if (y1 < y2) {
+            // positive slope
+            while (~(a > dx) & ~(b > dy)) {
+
+                do Screen.drawPixel(x1 + a, y1 + b);
+
+                if (adyMinusbdx < 0) {
+                    let b = b + 1;
+                    let adyMinusbdx = adyMinusbdx + dy;
+                } else {
+                    let a = a + 1;
+                    let adyMinusbdx = adyMinusbdx - dx;
+                }
+            }
+        } else {
+            // negative slope
+            while (~(a > dx) & ~(b < dy)) {
+
+                do Screen.drawPixel(x1 + a, y1 - b);
+
+                if (adyMinusbdx < 0) {
+                    let b = b + 1;
+                    let adyMinusbdx = adyMinusbdx - dy;
+                } else {
+                    let a = a + 1;
+                    let adyMinusbdx = adyMinusbdx - dx;
+                }
+            }
+            
+        }
 
         return;
     }
