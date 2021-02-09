@@ -159,10 +159,10 @@ class Screen {
                 do Screen.drawPixel(x1 + a, y1 + b);
 
                 if (adyMinusbdx < 0) {
-                    let b = b + 1;
+                    let a = a + 1;
                     let adyMinusbdx = adyMinusbdx + dy;
                 } else {
-                    let a = a + 1;
+                    let b = b + 1;
                     let adyMinusbdx = adyMinusbdx - dx;
                 }
             }
@@ -170,19 +170,18 @@ class Screen {
             // negative slope
             while (~(a > dx) & ~(b < dy)) {
 
-                do Screen.drawPixel(x1 + a, y1 - b);
+                do Screen.drawPixel(x1 + a, y1 + b);
 
                 if (adyMinusbdx < 0) {
-                    let b = b + 1;
+                    let a = a + 1;
                     let adyMinusbdx = adyMinusbdx - dy;
                 } else {
-                    let a = a + 1;
+                    let b = b - 1;
                     let adyMinusbdx = adyMinusbdx - dx;
                 }
             }
             
         }
-
         return;
     }
 
@@ -199,6 +198,21 @@ class Screen {
 
     /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
     function void drawCircle(int x, int y, int r) {
+        var int dy;
+        var int temp;
+
+        let dy = -r;
+
+        while (~(dy > r)) {
+            let temp = Math.sqrt((r * r) - (dy * dy));
+            do Screen.drawHorizontalLine(
+                x - temp,
+                x + temp,
+                y + dy
+            );
+            let dy = dy + 1;
+        }
+
         return;
     }
 }
